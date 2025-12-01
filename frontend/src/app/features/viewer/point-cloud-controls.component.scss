@@ -1,0 +1,161 @@
+:host {
+  display: block;
+}
+
+.point-cloud-controls-panel {
+  background: var(--bg-panel);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-lg);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--bg-tertiary);
+  }
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+
+  .panel-icon {
+    font-size: 20px;
+    color: var(--accent-blue);
+  }
+}
+
+.collapse-btn {
+  color: var(--text-secondary) !important;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-tertiary) !important;
+  }
+}
+
+.panel-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.expanded {
+    max-height: 600px;
+  }
+}
+
+.content-sections {
+  padding: var(--spacing-xl);
+}
+
+.control-section {
+  margin-bottom: var(--spacing-xl);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  mat-icon {
+    font-size: 18px;
+    color: var(--accent-blue);
+  }
+}
+
+.point-cloud-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.point-cloud-item {
+  padding: var(--spacing-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+  }
+}
+
+.density-control {
+  margin-top: var(--spacing-md);
+
+  label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+  }
+}
+
+.control-grid {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.control-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.control-label {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+::ng-deep {
+  .mat-mdc-checkbox {
+    --mdc-checkbox-selected-focus-icon-color: var(--accent-blue);
+    --mdc-checkbox-selected-hover-icon-color: var(--accent-blue);
+    --mdc-checkbox-selected-icon-color: var(--accent-blue);
+    --mdc-checkbox-selected-pressed-icon-color: var(--accent-blue);
+  }
+
+  .mat-mdc-slider {
+    --mdc-slider-handle-color: var(--accent-blue);
+    --mdc-slider-focus-handle-color: var(--accent-blue);
+    --mdc-slider-hover-handle-color: var(--accent-blue);
+    --mdc-slider-active-track-color: var(--accent-blue);
+    --mdc-slider-inactive-track-color: var(--bg-tertiary);
+  }
+
+  .mat-mdc-select {
+    --mdc-outlined-text-field-outline-color: var(--border-color);
+    --mdc-outlined-text-field-focus-outline-color: var(--accent-blue);
+  }
+}

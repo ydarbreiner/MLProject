@@ -1,0 +1,26 @@
+<div class="shortcuts-dialog">
+  <h2 mat-dialog-title class="dialog-title">
+    <mat-icon class="title-icon">keyboard</mat-icon>
+    Keyboard Shortcuts
+  </h2>
+
+  <div mat-dialog-content class="dialog-content">
+    <div class="shortcuts-grid">
+      <div *ngFor="let group of shortcutGroups" class="shortcut-group">
+        <h3 class="group-title">{{ group.title }}</h3>
+        <div class="shortcut-list">
+          <div *ngFor="let shortcut of group.shortcuts" class="shortcut-item">
+            <div class="shortcut-keys">
+              <kbd class="kbd">{{ shortcut.keys }}</kbd>
+            </div>
+            <div class="shortcut-description">{{ shortcut.description }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div mat-dialog-actions class="dialog-actions">
+    <button mat-button mat-dialog-close class="close-button">Close</button>
+  </div>
+</div>

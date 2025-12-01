@@ -1,0 +1,1399 @@
+<div class="viewer-shell">
+  <header class="viewer-header">
+    <!-- Menubar (Row 1) -->
+    <div class="viewer-menubar">
+      <div class="viewer-menubar__left">
+        <button class="menubar-item menubar-item--back"
+                type="button"
+                (click)="navigateBack()">
+          <span class="menubar-item__icon">←</span>
+          Library
+        </button>
+        <span class="menubar-divider"></span>
+        <app-menu-bar></app-menu-bar>
+      </div>
+      <div class="viewer-menubar__right">
+        <span class="menubar-status">{{ formatPointCount(totalPoints) }} pts</span>
+        <span class="menubar-status">{{ currentColorMode | titlecase }}</span>
+        <span class="menubar-status">{{ fps }} fps</span>
+      </div>
+    </div>
+
+    <!-- Document Tab (Row 2) -->
+    <div class="viewer-document-tab">
+      <ng-container *ngIf="selectedPointCloud$ | async as pointCloud; else defaultDocumentTab">
+        <span class="document-tab__name">{{ pointCloud.name }}</span>
+        <span class="document-tab__separator">·</span>
+        <span class="document-tab__meta">{{ formatPointCount(totalPoints) }} pts</span>
+        <span class="document-tab__separator" *ngIf="coverageArea">·</span>
+        <span class="document-tab__meta" *ngIf="coverageArea">{{ formatArea(coverageArea) }}</span>
+        <span class="document-tab__separator">·</span>
+        <span class="document-tab__meta">{{ currentColorMode | titlecase }}</span>
+      </ng-container>
+      <ng-template #defaultDocumentTab>
+        <span class="document-tab__name">Point Cloud</span>
+        <span class="document-tab__separator">·</span>
+        <span class="document-tab__meta">{{ formatPointCount(totalPoints) }} pts</span>
+      </ng-template>
+    </div>
+
+    <!-- Main Toolbar (Row 3) -->
+    <div class="viewer-toolbar">
+      <!-- Visualization Modes (Segmented Control) -->
+      <div class="toolbar-section toolbar-section--modes">
+        <div class="segmented-control">
+          <button class="segment-button"
+                  type="button"
+                  [class.active]="currentColorMode === 'rgb'"
+                  (click)="setColorMode('rgb')"
+                  title="RGB Color Mode">
+            RGB
+          </button>
+          <button class="segment-button"
+                  type="button"
+                  [class.active]="currentColorMode === 'elevation'"
+                  (click)="setColorMode('elevation')"
+                  title="Elevation Mode">
+            ELEVATION
+          </button>
+          <button class="segment-button"
+                  type="button"
+                  [class.active]="currentColorMode === 'classification'"
+                  (click)="setColorMode('classification')"
+                  title="Classification Mode">
+            CLASSIFICATION
+          </button>
+          <button class="segment-button"
+                  type="button"
+                  [class.active]="currentColorMode === 'cluster'"
+                  (click)="setColorMode('cluster')"
+                  title="Cluster Mode">
+            CLUSTER
+          </button>
+        </div>
+      </div>
+
+      <span class="toolbar-divider"></span>
+
+      <!-- Reset View -->
+      <div class="toolbar-section toolbar-section--reset">
+        <button class="tool-button tool-button--icon"
+                type="button"
+                (click)="resetView()"
+                title="Reset View (R)">
+          <mat-icon>home</mat-icon>
+        </button>
+      </div>
+
+      <span class="toolbar-divider"></span>
+
+      <!-- Measurement & Selection Tools -->
+      <div class="toolbar-section toolbar-section--measurement">
+        <button class="tool-button tool-button--icon"
+                type="button"
+                [class.active]="currentTool === 'measure'"
+                (click)="setTool('measure')"
+                title="Measure Distance (M)">
+          <mat-icon>straighten</mat-icon>
+        </button>
+        <button class="tool-button tool-button--icon"
+                type="button"
+                *ngIf="currentColorMode === 'classification'"
+                [class.active]="currentTool === 'lasso'"
+                (click)="setTool('lasso')"
+                title="Lasso Selection (L)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button class="tool-button tool-button--icon"
+                type="button"
+                [class.active]="currentTool === 'point-info'"
+                (click)="setTool('point-info')"
+                title="Point Info (I)">
+          <mat-icon>info</mat-icon>
+        </button>
+      </div>
+
+      <span class="toolbar-divider"></span>
+
+      <!-- Display Controls -->
+      <div class="toolbar-section toolbar-section--display">
+        <button class="tool-button tool-button--icon"
+                type="button"
+                [class.active]="statisticsPanelOpen"
+                (click)="toggleStatisticsPanel()"
+                title="Statistics (T)">
+          <mat-icon>bar_chart</mat-icon>
+        </button>
+        <button class="tool-button tool-button--icon"
+                type="button"
+                [class.active]="measurementsPanelOpen"
+                (click)="toggleMeasurementsPanel()"
+                title="Measurements List">
+          <mat-icon>list_alt</mat-icon>
+        </button>
+        <button class="tool-button tool-button--icon"
+                type="button"
+                [class.active]="clusterPanelOpen"
+                (click)="toggleClusterPanel()"
+                title="Cluster Overlays">
+          <mat-icon>scatter_plot</mat-icon>
+        </button>
+        <button class="tool-button tool-button--icon"
+                type="button"
+                *ngIf="poles.length > 0 || polesLoading"
+                [class.active]="polePanelOpen"
+                (click)="togglePolePanel()"
+                title="Poles ({{ poles.length }})">
+          <mat-icon>location_on</mat-icon>
+        </button>
+        <button class="tool-button tool-button--icon"
+                type="button"
+                [class.active]="settingsPanelOpen"
+                (click)="toggleSettingsPanel()"
+                title="Display Settings">
+          <mat-icon>settings</mat-icon>
+        </button>
+      </div>
+
+      <!-- Spacer -->
+      <div class="toolbar-spacer"></div>
+
+      <!-- Export -->
+      <div class="toolbar-section toolbar-section--export">
+        <button class="tool-button tool-button--primary"
+                type="button"
+                (click)="captureScreenshot()"
+                title="Screenshot (S)">
+          <mat-icon>photo_camera</mat-icon>
+          <span>Screenshot</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="viewer-main">
+    <section class="viewer-stage">
+      <div id="point-cloud-container" #renderArea
+           [class.loading]="isLoading$ | async"
+           [class.measure-active]="currentTool === 'measure'"
+           [class.lasso-active]="currentTool === 'lasso'">
+
+        <div class="point-cloud-canvas-host" #viewerHost></div>
+
+        <svg class="measurement-overlay"
+             *ngIf="currentTool === 'measure' || savedMeasurements.length > 0"
+             [attr.viewBox]="'0 0 ' + viewWidth + ' ' + viewHeight">
+          <g *ngFor="let measurement of savedMeasurements; let i = index">
+            <ng-container *ngIf="getMeasurementScreenPoints(measurement) as screenPoints">
+              <ng-container *ngIf="screenPoints.length === 2">
+                <circle [attr.cx]="screenPoints[0].x"
+                        [attr.cy]="screenPoints[0].y"
+                        r="6"
+                        fill="#ffffff"
+                        stroke="#000000"
+                        stroke-width="2"/>
+                <circle [attr.cx]="screenPoints[1].x"
+                        [attr.cy]="screenPoints[1].y"
+                        r="6"
+                        fill="#ffffff"
+                        stroke="#000000"
+                        stroke-width="2"/>
+                <line [attr.x1]="screenPoints[0].x"
+                      [attr.y1]="screenPoints[0].y"
+                      [attr.x2]="screenPoints[1].x"
+                      [attr.y2]="screenPoints[1].y"
+                      stroke="#ffffff"
+                      stroke-width="2"/>
+                <text [attr.x]="(screenPoints[0].x + screenPoints[1].x) / 2"
+                      [attr.y]="(screenPoints[0].y + screenPoints[1].y) / 2 - 10"
+                      fill="#ffffff"
+                      font-size="12"
+                      font-weight="bold"
+                      text-anchor="middle"
+                      stroke="#000000"
+                      stroke-width="3"
+                      paint-order="stroke">
+                  #{{ i + 1 }}: {{ measurement.distance.toFixed(2) }} m
+                </text>
+              </ng-container>
+            </ng-container>
+          </g>
+
+          <g *ngIf="currentTool === 'measure'">
+            <circle *ngIf="measurementScreenPoints.length >= 1"
+                    [attr.cx]="measurementScreenPoints[0].x"
+                    [attr.cy]="measurementScreenPoints[0].y"
+                    r="6"
+                    fill="#ffffff"
+                    stroke="#000000"
+                    stroke-width="2"/>
+
+            <line *ngIf="measurementScreenPoints.length === 1"
+                  [attr.x1]="measurementScreenPoints[0].x"
+                  [attr.y1]="measurementScreenPoints[0].y"
+                  [attr.x2]="currentMousePos.x"
+                  [attr.y2]="currentMousePos.y"
+                  stroke="#ffffff"
+                  stroke-width="2"
+                  stroke-dasharray="5,5"
+                  opacity="0.7"/>
+
+            <text *ngIf="measurementScreenPoints.length === 1 && previewDistance > 0"
+                  [attr.x]="(measurementScreenPoints[0].x + currentMousePos.x) / 2"
+                  [attr.y]="(measurementScreenPoints[0].y + currentMousePos.y) / 2 - 10"
+                  fill="#ffffff"
+                  font-size="12"
+                  font-weight="bold"
+                  text-anchor="middle"
+                  stroke="#000000"
+                  stroke-width="3"
+                  paint-order="stroke"
+                  opacity="0.7">
+              {{ previewDistance.toFixed(2) }} m
+            </text>
+          </g>
+        </svg>
+
+        <svg class="lasso-selection-overlay"
+             *ngIf="currentTool === 'lasso' && lassoPoints.length > 0"
+             [attr.viewBox]="'0 0 ' + viewWidth + ' ' + viewHeight">
+          <polyline [attr.points]="getActiveLassoPointsAttribute()"
+                    fill="rgba(106, 155, 255, 0.12)"
+                    stroke="#6a9bff"
+                    stroke-width="3"
+                    stroke-linejoin="round"
+                    stroke-linecap="round"/>
+        </svg>
+
+        <svg class="lasso-preview-overlay"
+             *ngIf="previewPolygon.length > 0"
+             [attr.viewBox]="'0 0 ' + viewWidth + ' ' + viewHeight">
+          <polyline [attr.points]="getPreviewPolygonAttribute()"
+                    fill="rgba(106, 155, 255, 0.08)"
+                    stroke="#6a9bff"
+                    stroke-width="2.5"
+                    stroke-linejoin="round"
+                    stroke-linecap="round"
+                    stroke-dasharray="6,4"/>
+        </svg>
+      </div>
+
+      <div *ngIf="isLoading$ | async" class="loading-overlay">
+        <div class="loading-content">
+          <div class="loading-spinner">
+            <div class="quantum-spinner">
+              <div class="ring"></div>
+              <div class="ring"></div>
+              <div class="ring"></div>
+              <div class="core"></div>
+            </div>
+          </div>
+          <h3 class="loading-title">Loading point cloud</h3>
+          <p class="loading-description">Processing millions of points…</p>
+        </div>
+      </div>
+
+      <div *ngIf="error$ | async as error" class="error-overlay">
+        <div class="error-content">
+          <div class="error-icon-container">
+            <mat-icon class="error-icon">error</mat-icon>
+          </div>
+          <h3 class="error-title">Failed to load point cloud</h3>
+          <p class="error-description">{{ error }}</p>
+          <div class="error-actions">
+            <button class="btn btn-secondary btn-base" (click)="navigateBack()">
+              <mat-icon>arrow_back</mat-icon>
+              Back to library
+            </button>
+            <button class="btn btn-primary btn-base" (click)="retry()">
+              <mat-icon>refresh</mat-icon>
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div
+      class="panel-stack panel-stack--right"
+      *ngIf="statisticsPanelOpen || settingsPanelOpen || measurementsPanelOpen || clusterPanelOpen || pointInfoResult || pointInfoError">
+    <!-- Statistics Panel -->
+    <aside class="panel-floating panel-statistics"
+           *ngIf="statisticsPanelOpen">
+      <div class="panel-header">
+        <h3 class="panel-title">STATISTICS</h3>
+        <button class="panel-close"
+                type="button"
+                (click)="toggleStatisticsPanel()">
+          ×
+        </button>
+      </div>
+      <div class="panel-body">
+        <div class="stat-group">
+          <div class="stat-item">
+            <span class="stat-label">Total Points</span>
+            <span class="stat-value">{{ formatPointCount(totalPoints) }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Rendered Points</span>
+            <span class="stat-value">{{ formatPointCount(renderedPoints) }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Coverage Area</span>
+            <span class="stat-value">{{ formatArea(coverageArea) }}</span>
+          </div>
+          <div class="stat-item" *ngIf="pointDensity">
+            <span class="stat-label">Point Density</span>
+            <span class="stat-value">{{ pointDensity.toFixed(1) }} pts/m²</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">FPS</span>
+            <span class="stat-value">{{ fps }}</span>
+          </div>
+        </div>
+
+        <div class="stat-group" *ngIf="currentColorMode === 'classification' && classifications.length > 0">
+          <h4 class="stat-group-title">Classification Breakdown</h4>
+          <div class="classification-stats">
+            <div class="classification-stat" *ngFor="let classification of classifications">
+              <div class="classification-color" [style.background-color]="classification.color"></div>
+              <span class="classification-name">{{ classification.name }}</span>
+              <span class="classification-count">{{ formatPointCount(classification.pointCount) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Measurements Panel -->
+    <aside class="panel-floating panel-measurements"
+           *ngIf="measurementsPanelOpen">
+      <div class="panel-header">
+        <h3 class="panel-title">MEASUREMENTS</h3>
+        <button class="panel-close"
+                type="button"
+                (click)="toggleMeasurementsPanel()">
+          ×
+        </button>
+      </div>
+      <div class="panel-body">
+        <div class="measurements-list" *ngIf="savedMeasurements.length > 0">
+          <div class="measurement-item"
+               *ngFor="let measurement of savedMeasurements; let i = index"
+               [class.active]="selectedMeasurementId === measurement.id">
+            <div class="measurement-header">
+              <span class="measurement-number">#{{ i + 1 }}</span>
+              <span class="measurement-type">Distance</span>
+              <button class="measurement-delete"
+                      type="button"
+                      (click)="deleteMeasurement(measurement.id)"
+                      title="Delete measurement">
+                ×
+              </button>
+            </div>
+            <div class="measurement-value">
+              {{ measurement.distance.toFixed(2) }}m
+            </div>
+            <div class="measurement-time">
+              {{ measurement.timestamp | date:'short' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="measurements-empty" *ngIf="savedMeasurements.length === 0">
+          <mat-icon class="empty-icon">straighten</mat-icon>
+          <p class="empty-text">No measurements yet</p>
+          <p class="empty-hint">Use the Measure tool to add measurements</p>
+        </div>
+
+        <div class="measurements-actions" *ngIf="savedMeasurements.length > 0">
+          <button class="action-button"
+                  type="button"
+                  (click)="exportMeasurements()">
+            Export CSV
+          </button>
+          <button class="action-button secondary"
+                  type="button"
+                  (click)="clearAllMeasurements()">
+            Clear All
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Settings Panel -->
+    <aside class="panel-floating panel-settings"
+           *ngIf="settingsPanelOpen">
+      <div class="panel-header">
+        <h3 class="panel-title">DISPLAY SETTINGS</h3>
+        <button class="panel-close"
+                type="button"
+                (click)="toggleSettingsPanel()">
+          ×
+        </button>
+      </div>
+      <div class="panel-body">
+        <div class="setting-group">
+          <label class="setting-label">
+            Point Size
+            <span class="setting-value">{{ pointSize.toFixed(2) }}×</span>
+          </label>
+          <input type="range"
+                 class="setting-slider"
+                 [min]="0.5"
+                 [max]="10.0"
+                 [step]="0.1"
+                 [(ngModel)]="pointSize"
+                 (input)="onPointSizeChange()">
+        </div>
+
+        <div class="setting-group">
+          <label class="setting-label">
+            Point Budget
+            <span class="setting-value">{{ formatPointCount(pointBudget) }}</span>
+          </label>
+          <input type="range"
+                 class="setting-slider"
+                 [min]="500000"
+                 [max]="5000000"
+                 [step]="100000"
+                 [(ngModel)]="pointBudget"
+                 (input)="onPointBudgetChange()">
+        </div>
+
+        <div class="setting-group">
+          <label class="setting-label">Background</label>
+          <div class="setting-buttons">
+            <button class="setting-button"
+                    [class.active]="backgroundColor === 'black'"
+                    (click)="setBackgroundColor('black')">
+              Black
+            </button>
+            <button class="setting-button"
+                    [class.active]="backgroundColor === 'white'"
+                    (click)="setBackgroundColor('white')">
+              White
+            </button>
+            <button class="setting-button"
+                    [class.active]="backgroundColor === 'gray'"
+                    (click)="setBackgroundColor('gray')">
+              Gray
+            </button>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <label class="setting-label">
+            Eye-Dome Lighting
+          </label>
+          <div class="setting-toggle">
+            <button class="toggle-button"
+                    [class.active]="edlEnabled"
+                    (click)="toggleEDL()">
+              {{ edlEnabled ? 'ON' : 'OFF' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <label class="setting-label">
+            Show Concave Hull
+          </label>
+          <div class="setting-toggle">
+            <button class="toggle-button"
+                    [class.active]="hullEnabled"
+                    (click)="toggleHull()">
+              {{ hullEnabled ? 'ON' : 'OFF' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="setting-group" *ngIf="sliceMinHeight !== sliceMaxHeight">
+          <label class="setting-label">Vertical Clipping</label>
+          <div class="clipping-controls">
+            <div class="clipping-control">
+              <span class="clipping-label">Min Height</span>
+              <span class="clipping-value">{{ sliceMinHeight.toFixed(1) }}m</span>
+              <input type="range"
+                     class="setting-slider"
+                     [min]="sliceMinHeight"
+                     [max]="sliceMaxHeight"
+                     [step]="0.1"
+                     [(ngModel)]="sliceHeight"
+                     (input)="onSliceHeightChange()">
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Cluster Panel -->
+    <aside class="panel-floating panel-clusters"
+           *ngIf="clusterPanelOpen">
+      <div class="panel-header">
+        <h3 class="panel-title">CLUSTERS</h3>
+        <button class="panel-close"
+                type="button"
+                (click)="toggleClusterPanel()">
+          ×
+        </button>
+      </div>
+      <div class="panel-body">
+        <!-- Point Cloud Info -->
+        <div class="cluster-info-section" *ngIf="currentPointCloud">
+          <div class="cluster-info__header">
+            <div>
+              <p class="cluster-info__label">Point Cloud</p>
+              <p class="cluster-info__value">{{ currentPointCloud.name }}</p>
+            </div>
+            <span class="cluster-info__id" *ngIf="currentPointCloud.id">#{{ currentPointCloud.id }}</span>
+          </div>
+          <div class="cluster-info__metrics">
+            <div class="cluster-info__metric" *ngIf="currentPointCloud.pointCount">
+              <span class="metric-label">Points</span>
+              <span class="metric-value">{{ currentPointCloud.pointCount | number }}</span>
+            </div>
+            <div class="cluster-info__metric">
+              <span class="metric-label">Clusters Requested</span>
+              <span class="metric-value">{{ clusterGenerationConfig.numClusters }}</span>
+            </div>
+            <div class="cluster-info__metric">
+              <span class="metric-label">
+                {{ clusterModelMode === 'new' ? 'Training Steps' : 'Mode' }}
+              </span>
+              <span class="metric-value">
+                {{ clusterModelMode === 'new' ? (clusterGenerationConfig.maxTrainingSteps | number) : 'Existing checkpoint' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cluster-divider"></div>
+
+        <!-- Generate Clusters Section -->
+        <div class="cluster-generate-section">
+          <h4 class="section-title">Generate Clusters</h4>
+
+          <!-- Model Mode Selection -->
+          <div class="model-mode-toggle" role="group" aria-label="Cluster generation mode">
+            <button type="button"
+                    class="mode-pill"
+                    [class.active]="clusterModelMode === 'new'"
+                    (click)="clusterModelMode = 'new'"
+                    [attr.aria-pressed]="clusterModelMode === 'new'">
+              <mat-icon>auto_fix_high</mat-icon>
+              <span>Train New Model</span>
+            </button>
+            <button type="button"
+                    class="mode-pill"
+                    [class.active]="clusterModelMode === 'existing'"
+                    (click)="clusterModelMode = 'existing'"
+                    [attr.aria-pressed]="clusterModelMode === 'existing'">
+              <mat-icon>memory</mat-icon>
+              <span>Use Existing Model</span>
+            </button>
+          </div>
+
+          <!-- Model Selection (for existing) -->
+          <div class="form-group" *ngIf="clusterModelMode === 'existing'">
+            <label class="form-label">Model</label>
+            <div class="model-selector-row">
+              <select class="form-select" [(ngModel)]="selectedModelCheckpoint" [disabled]="trainedModelsLoading || trainedModels.length === 0">
+                <option [ngValue]="null">-- Select Model --</option>
+                <option *ngFor="let model of trainedModels" [ngValue]="model.checkpointPath">
+                  {{ model.runName }}
+                </option>
+              </select>
+              <button class="icon-button" type="button" (click)="loadTrainedModels()" [disabled]="trainedModelsLoading">
+                <mat-icon>refresh</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Training Steps (for new model) -->
+          <div class="form-group" *ngIf="clusterModelMode === 'new'">
+            <label class="form-label">Training Steps</label>
+            <input class="form-input" type="number" [(ngModel)]="clusterGenerationConfig.maxTrainingSteps" min="500" max="10000" step="500" />
+            <span class="form-hint">More steps = better quality, longer training</span>
+          </div>
+
+          <!-- Coverage Target -->
+          <div class="form-group">
+            <label class="form-label">Coverage & Speed</label>
+            <select class="form-select" [(ngModel)]="clusterGenerationConfig.targetCoverage">
+              <option *ngFor="let option of coverageOptions" [ngValue]="option.value">
+                {{ option.label }} - {{ option.patches }} patches
+              </option>
+            </select>
+            <span class="form-hint">
+              {{ selectedCoverageDescription }}
+            </span>
+          </div>
+
+          <!-- Number of Clusters -->
+          <div class="form-group">
+            <label class="form-label">Number of Clusters</label>
+            <input class="form-input" type="number" [(ngModel)]="clusterGenerationConfig.numClusters" min="2" max="50" />
+            <span class="form-hint">How many groups to create</span>
+          </div>
+
+          <!-- Generate Button -->
+          <button class="generate-button"
+                  type="button"
+                  [disabled]="!currentPointCloud || clusterGenerationInProgress || (clusterModelMode === 'existing' && !selectedModelCheckpoint)"
+                  (click)="generateClusters()">
+            <mat-icon *ngIf="!clusterGenerationInProgress">auto_awesome</mat-icon>
+            <mat-icon *ngIf="clusterGenerationInProgress" class="spinning">sync</mat-icon>
+            <span>{{ clusterGenerationInProgress ? 'Generating...' : (clusterModelMode === 'new' ? 'Train & Cluster' : 'Run Inference') }}</span>
+          </button>
+        </div>
+
+        <div class="cluster-divider"></div>
+
+        <!-- Active Jobs for Current Point Cloud -->
+        <div class="cluster-jobs-section" *ngIf="currentClusterRuns.length > 0">
+          <div class="section-heading">
+            <h4 class="section-title">Current Cluster Runs</h4>
+            <span class="section-subtitle">Live status for this point cloud</span>
+          </div>
+          <article class="cluster-run-card"
+                   *ngFor="let job of currentClusterRuns; trackBy: trackClusterRun">
+            <div class="cluster-run-card__header">
+              <div>
+                <div class="run-title">{{ job.runName }}</div>
+                <div class="run-meta">
+                  Started {{ job.receivedAt | date: 'short' }}
+                  <span class="dot">•</span>
+                  Updated {{ job.updatedAt | date: 'shortTime' }}
+                </div>
+              </div>
+              <div class="cluster-run-card__header-actions">
+                <div class="run-status-badge" [ngClass]="'status-' + job.status">
+                  <mat-icon>{{ getClusterStatusIcon(job.status) }}</mat-icon>
+                  <span>{{ getClusterStatusLabel(job.status) }}</span>
+                </div>
+                <div class="run-actions">
+                  <button class="cluster-run-action"
+                          type="button"
+                          *ngIf="canCancelJob(job)"
+                          [disabled]="isJobActionInFlight(job.id)"
+                          (click)="cancelClusterJob(job)">
+                    <mat-progress-spinner *ngIf="isJobActionInFlight(job.id)"
+                                          mode="indeterminate"
+                                          [diameter]="16"
+                                          [strokeWidth]="3"></mat-progress-spinner>
+                    <mat-icon *ngIf="!isJobActionInFlight(job.id)">close</mat-icon>
+                    <span>Cancel</span>
+                  </button>
+                  <button class="cluster-run-action danger"
+                          type="button"
+                          *ngIf="canDeleteJob(job)"
+                          [disabled]="isJobActionInFlight(job.id)"
+                          (click)="deleteClusterJob(job)">
+                    <mat-progress-spinner *ngIf="isJobActionInFlight(job.id)"
+                                          mode="indeterminate"
+                                          [diameter]="16"
+                                          [strokeWidth]="3"></mat-progress-spinner>
+                    <mat-icon *ngIf="!isJobActionInFlight(job.id)">delete</mat-icon>
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="cluster-run-card__metrics">
+              <div class="metric">
+                <span class="metric-label">Clusters</span>
+                <span class="metric-value">{{ job.numClusters }}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Max Steps</span>
+                <span class="metric-value">{{ job.maxTrainingSteps | number }}</span>
+              </div>
+              <div class="metric" *ngIf="job.totalSteps">
+                <span class="metric-label">Step Progress</span>
+                <span class="metric-value">
+                  {{ job.currentStep | number }} / {{ job.totalSteps | number }}
+                </span>
+                <div class="metric-progress">
+                  <div class="metric-progress__bar" [style.width.%]="getJobStepPercentage(job)"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cluster-run-card__timeline">
+              <div class="timeline-step"
+                   *ngFor="let stage of clusterJobStages"
+                   [ngClass]="getClusterStageState(job, stage.key)">
+                <div class="timeline-dot">
+                  <ng-container [ngSwitch]="getClusterStageState(job, stage.key)">
+                    <mat-progress-spinner *ngSwitchCase="'active'"
+                                          class="timeline-progress-spinner"
+                                          mode="determinate"
+                                          [value]="getStageProgressValue(job, stage.key)"
+                                          [diameter]="26"
+                                          [strokeWidth]="4"></mat-progress-spinner>
+                    <mat-icon *ngSwitchCase="'done'">check</mat-icon>
+                    <span *ngSwitchDefault></span>
+                  </ng-container>
+                </div>
+                <div class="timeline-text">
+                  <span class="timeline-label">{{ stage.label }}</span>
+                  <span class="timeline-desc">{{ stage.description }}</span>
+                  <span class="timeline-progress-value"
+                        *ngIf="getClusterStageState(job, stage.key) === 'active'">
+                    {{ getStageProgressValue(job, stage.key) }}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="cluster-run-card__progress" *ngIf="job.progressMessage">
+              <mat-icon>info_outline</mat-icon>
+              <span>{{ job.progressMessage }}</span>
+            </div>
+
+            <div class="cluster-run-card__error" *ngIf="job.status === 'failed'">
+              <mat-icon>error_outline</mat-icon>
+              <div>
+                <div class="error-title">Run failed</div>
+                <div class="error-detail">
+                  {{ job.errorDetails?.error || 'Check cluster worker logs for details.' }}
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- Completed Cluster Overlays for Current Point Cloud -->
+        <div class="cluster-results-section" *ngIf="overlayManifestItems.length > 0">
+          <h4 class="section-title">Available Overlays</h4>
+          <div class="overlay-card" *ngFor="let overlay of overlayManifestItems">
+            <div class="overlay-info">
+              <div class="overlay-stats">
+                <span>{{ overlay.pointCount | number }} points</span>
+                <span class="separator">•</span>
+                <span>{{ overlay.tileCount }} tiles</span>
+              </div>
+              <div class="overlay-clusters">
+                {{ Object.keys(overlay.clusterCounts).length }} clusters
+              </div>
+            </div>
+            <div class="overlay-actions">
+              <button class="apply-button"
+                      type="button"
+                      (click)="loadClusterOverlay(overlay)"
+                      [disabled]="overlayLoading || !currentPointCloud || overlay.pointcloudId !== currentPointCloud.id">
+                Apply Overlay
+              </button>
+            </div>
+          </div>
+          <button class="clear-button"
+                  type="button"
+                  *ngIf="activeOverlayFilePath"
+                  (click)="clearClusterOverlay()">
+            <mat-icon>close</mat-icon>
+            Clear Active Overlay
+          </button>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="currentClusterRuns.length === 0 && overlayManifestItems.length === 0 && !clusterGenerationInProgress">
+          <mat-icon>layers</mat-icon>
+          <p>No cluster jobs for this point cloud yet.</p>
+          <p class="hint">Generate clusters above to get started.</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Point Info Panel -->
+    <aside class="panel-floating panel-point-info"
+           *ngIf="pointInfoResult || pointInfoError">
+      <div class="panel-header">
+        <h3 class="panel-title">POINT INFO</h3>
+        <button class="panel-close"
+                type="button"
+                (click)="clearPointInfo()">
+          ×
+        </button>
+      </div>
+      <div class="panel-body" *ngIf="pointInfoResult as info; else pointInfoEmpty">
+        <div class="point-info-row">
+          <span class="point-info-label">X</span>
+          <span class="point-info-value">{{ info.position.x | number:'1.3-3' }}</span>
+        </div>
+        <div class="point-info-row">
+          <span class="point-info-label">Y</span>
+          <span class="point-info-value">{{ info.position.y | number:'1.3-3' }}</span>
+        </div>
+        <div class="point-info-row">
+          <span class="point-info-label">Z</span>
+          <span class="point-info-value">{{ info.position.z | number:'1.3-3' }}</span>
+        </div>
+        <div class="point-info-row" *ngIf="info.classification !== null && info.classification !== undefined">
+          <span class="point-info-label">Class</span>
+          <span class="point-info-value">{{ info.classification }}</span>
+        </div>
+        <div class="point-info-row" *ngIf="info.intensity !== null && info.intensity !== undefined">
+          <span class="point-info-label">Intensity</span>
+          <span class="point-info-value">{{ info.intensity | number:'1.0-0' }}</span>
+        </div>
+        <div class="point-info-row" *ngIf="info.returnNumber !== null && info.returnNumber !== undefined">
+          <span class="point-info-label">Return</span>
+          <span class="point-info-value">#{{ info.returnNumber }}</span>
+        </div>
+        <div class="point-info-row" *ngIf="info.lat !== null && info.lng !== null">
+          <span class="point-info-label">Lat/Lng</span>
+          <span class="point-info-value">{{ info.lat | number:'1.6-6' }}, {{ info.lng | number:'1.6-6' }}</span>
+        </div>
+        <div class="point-info-row" *ngIf="info.pointIndex !== null">
+          <span class="point-info-label">Index</span>
+          <span class="point-info-value">{{ info.pointIndex }}</span>
+        </div>
+
+        <div class="point-info-actions">
+          <button class="action-button"
+                  type="button"
+                  (click)="copyPointInfo()">
+            Copy Coordinates
+          </button>
+        </div>
+        <div class="point-info-meta">
+          Last updated {{ info.timestamp | date:'shortTime' }}
+        </div>
+      </div>
+      <ng-template #pointInfoEmpty>
+        <div class="panel-status panel-status--info">
+          <mat-icon class="status-icon">info</mat-icon>
+          <p class="status-text">{{ pointInfoError }}</p>
+        </div>
+      </ng-template>
+    </aside>
+
+    </div>
+
+    <!-- Poles Panel -->
+    <aside class="panel-floating panel-poles"
+           *ngIf="polePanelOpen"
+           [style.top.px]="20"
+           [style.left.px]="20">
+      <div class="panel-header">
+        <h3 class="panel-title">POLES ({{ poles.length }})</h3>
+        <button class="panel-close"
+                type="button"
+                (click)="togglePolePanel()">
+          ×
+        </button>
+      </div>
+      <div class="panel-body">
+        <!-- Loading State -->
+        <div class="panel-status" *ngIf="polesLoading">
+          <mat-icon class="status-icon">hourglass_empty</mat-icon>
+          <p class="status-text">Loading poles...</p>
+        </div>
+
+        <!-- Error State -->
+        <div class="panel-status panel-status--error" *ngIf="!polesLoading && poleLoadError">
+          <mat-icon class="status-icon">warning</mat-icon>
+          <p class="status-text">{{ poleLoadError }}</p>
+        </div>
+
+        <!-- Pole Controls -->
+        <div class="pole-controls" *ngIf="!polesLoading && !poleLoadError && poles.length > 0">
+          <div class="setting-group">
+            <div class="setting-label">
+              <span>Marker Size</span>
+              <span class="setting-value">{{ poleMarkerScale | number:'1.2-2' }}×</span>
+            </div>
+            <input type="range"
+                   class="setting-slider"
+                   [min]="poleMarkerScaleMin"
+                   [max]="poleMarkerScaleMax"
+                   [step]="poleMarkerScaleStep"
+                   [value]="poleMarkerScale"
+                   (input)="onPoleMarkerScaleChange(+$any($event.target).value)">
+          </div>
+
+          <button class="toggle-button"
+                  type="button"
+                  [class.active]="showPoleLabels"
+                  (click)="onPoleLabelToggle(!showPoleLabels)">
+            <span class="toggle-label">Show Labels</span>
+            <span class="toggle-status">{{ showPoleLabels ? 'ON' : 'OFF' }}</span>
+          </button>
+        </div>
+
+        <!-- Edit Status Messages -->
+        <div class="panel-status panel-status--info"
+             *ngIf="poleEditState === 'awaiting-point' && editingPoleId !== null">
+          <mat-icon class="status-icon">touch_app</mat-icon>
+          <p class="status-text">Click the viewer to place the pole</p>
+          <p class="status-hint">Press Esc to cancel</p>
+        </div>
+
+        <div class="panel-status panel-status--info"
+             *ngIf="poleEditState === 'saving'">
+          <mat-icon class="status-icon">save</mat-icon>
+          <p class="status-text">Saving pole position...</p>
+        </div>
+
+        <!-- Poles List -->
+        <div class="poles-list" *ngIf="!polesLoading && !poleLoadError && poles.length > 0">
+          <button type="button"
+                  class="pole-item"
+                  *ngFor="let pole of poles; trackBy: trackPoleById"
+                  (click)="focusOnPole(pole)"
+                  [class.active]="isPoleSelected(pole)">
+            <div class="pole-header">
+              <span class="pole-badge"
+                    *ngIf="pole.positionSource === 'geographic-bounds'">
+                APPROX
+              </span>
+              <span class="pole-name">{{ pole.name || ('Pole ' + pole.id) }}</span>
+            </div>
+            <div class="pole-coords" *ngIf="pole.position as position; else poleLatLng">
+              <span class="coord-label">XY:</span>
+              <span class="coord-value">{{ position.x | number:'1.0-0' }}, {{ position.y | number:'1.0-0' }}</span>
+            </div>
+            <ng-template #poleLatLng>
+              <div class="pole-coords">
+                <span class="coord-label">Lat/Lng:</span>
+                <span class="coord-value">{{ pole.lat | number:'1.4-4' }}, {{ pole.lng | number:'1.4-4' }}</span>
+              </div>
+            </ng-template>
+            <div class="pole-actions" *ngIf="isPoleSelected(pole)">
+              <button class="pole-action"
+                      type="button"
+                      *ngIf="!isPoleBeingEdited(pole)"
+                      (click)="startPoleAdjustment(pole, $event)">
+                Adjust Position
+              </button>
+              <button class="pole-action pole-action--cancel"
+                      type="button"
+                      *ngIf="isPoleBeingEdited(pole)"
+                      (click)="cancelPoleAdjustment($event)">
+                Cancel Adjust
+              </button>
+            </div>
+          </button>
+        </div>
+
+        <!-- Empty State -->
+        <div class="panel-status" *ngIf="!polesLoading && !poleLoadError && poles.length === 0">
+          <mat-icon class="status-icon">location_on</mat-icon>
+          <p class="status-text">No poles available</p>
+          <p class="status-hint">No poles found for this dataset</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Classification Sidebar -->
+    <aside class="viewer-sidebar"
+           *ngIf="currentColorMode === 'classification'"
+           [class.collapsed]="!sidebarOpen">
+      <button class="sidebar-toggle"
+              type="button"
+              (click)="toggleSidebar()"
+              title="{{ sidebarOpen ? 'Collapse' : 'Expand' }} classification panel">
+        {{ sidebarOpen ? 'Collapse' : 'Expand' }}
+      </button>
+
+      <div class="sidebar-content">
+        <div class="sidebar-section">
+          <h3 class="sidebar-title">Classifications</h3>
+          <p class="sidebar-description">
+            Draw a lasso to move points from one class into another. Choose the source class you want to replace, then pick the destination class before outlining the area. Use Apply Changes to commit or Discard to reset.
+          </p>
+
+          <div class="classification-save-banner"
+               *ngIf="classificationSaveStatus !== 'idle'"
+               [ngClass]="classificationSaveStatus">
+            <mat-icon class="status-icon" [ngClass]="classificationSaveStatus">{{ classificationStatusIcon }}</mat-icon>
+            <div class="status-body">
+              <div class="status-message">{{ classificationStatusMessage }}</div>
+              <div class="status-subtext"
+                   *ngIf="classificationSaveStatus === 'success' && lastClassificationOperationId">
+                Operation {{ lastClassificationOperationId }}
+              </div>
+              <div class="status-subtext"
+                   *ngIf="classificationSaveStatus === 'queued' && classificationSaveQueueDepth > 0">
+                {{ classificationSaveQueueDepth }} more batch{{ classificationSaveQueueDepth === 1 ? '' : 'es' }} waiting
+              </div>
+            </div>
+            <div class="status-actions">
+              <button class="status-action"
+                      type="button"
+                      *ngIf="classificationSaveStatus === 'error' && classificationSaveQueueDepth === 0"
+                      (click)="retryFailedClassificationSaves()">
+                Retry
+              </button>
+              <button class="status-action subtle"
+                      type="button"
+                      *ngIf="classificationSaveStatus !== 'saving' && classificationSaveStatus !== 'queued'"
+                      (click)="dismissClassificationStatus()"
+                      title="Dismiss status">
+                Dismiss
+              </button>
+            </div>
+          </div>
+
+          <div class="classification-summary">
+            <div class="selected-classification" *ngIf="selectedSourceClassification">
+              <span class="selected-label">Source class</span>
+              <div class="selected-item">
+                <div class="classification-color" [style.background-color]="selectedSourceClassification.color"></div>
+                <div class="classification-info">
+                  <span class="classification-name">{{ selectedSourceClassification.name }}</span>
+                  <span class="classification-count">{{ formatPointCount(selectedSourceClassification.pointCount) }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="selected-classification" *ngIf="selectedClassification">
+              <span class="selected-label">Target class</span>
+              <div class="selected-item">
+                <div class="classification-color" [style.background-color]="selectedClassification.color"></div>
+                <div class="classification-info">
+                  <span class="classification-name">{{ selectedClassification.name }}</span>
+                  <span class="classification-count">{{ formatPointCount(selectedClassification.pointCount) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tools-section">
+            <span class="tools-label">Tool</span>
+            <div class="tools-grid">
+              <button class="tool-button"
+                      [class.active]="currentTool === 'lasso'"
+                      (click)="setTool('lasso')"
+                      title="Lasso selection">
+                <mat-icon class="tool-icon">edit</mat-icon>
+                <span>Lasso</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="classification-visibility-controls">
+            <div class="visibility-header">
+              <span class="visibility-label">Visibility</span>
+              <div class="visibility-actions">
+                <button class="btn-link" type="button" (click)="showAllClassifications()" title="Show all classifications">
+                  Show All
+                </button>
+                <button class="btn-link" type="button" (click)="hideAllClassifications()" title="Hide all classifications">
+                  Hide All
+                </button>
+                <button class="btn-link danger" type="button" (click)="resetAllClassificationColors()" title="Reset all classification colors">
+                  Reset Colors
+                </button>
+              </div>
+            </div>
+            <div class="classification-list-with-visibility">
+              <div class="classification-item-with-toggle"
+                   *ngFor="let classification of classifications"
+                   [class.hidden]="!isClassificationVisible(classification)">
+                <button class="visibility-toggle"
+                        type="button"
+                        (click)="toggleClassificationVisibility(classification)"
+                        title="Toggle visibility">
+                  <mat-icon class="visibility-icon">{{ isClassificationVisible(classification) ? 'visibility' : 'visibility_off' }}</mat-icon>
+                </button>
+                <button class="classification-color-button"
+                        type="button"
+                        (click)="startEditingClassificationColor(classification)"
+                        [attr.aria-label]="'Edit color for ' + classification.name">
+                  <div class="classification-color swatch-lg" [style.background-color]="classification.color"></div>
+                  <span class="color-hex">{{ classification.color }}</span>
+                </button>
+                <div class="classification-info">
+                  <span class="classification-name">{{ classification.name }}</span>
+                  <span class="classification-count">{{ formatPointCount(classification.pointCount) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="classification-color-editor" *ngIf="colorEditingClassification as editing">
+              <div class="editor-header">
+                <div>
+                  <div class="editor-title">Color for {{ editing.name }}</div>
+                  <div class="editor-subtitle">Class {{ editing.value }}</div>
+                </div>
+                <button class="editor-close" type="button" (click)="closeColorEditor()" aria-label="Close color editor">×</button>
+              </div>
+
+              <div class="editor-body">
+                <div class="editor-row">
+                  <label class="editor-label">Picker</label>
+                  <input class="editor-color-input"
+                         type="color"
+                         [ngModel]="classificationColorDraft"
+                         (ngModelChange)="onClassificationDraftInput($event)">
+                  <input class="editor-hex-input"
+                         type="text"
+                         [ngModel]="classificationColorDraft"
+                         (ngModelChange)="onClassificationDraftInput($event)"
+                         maxlength="7"
+                         placeholder="#RRGGBB">
+                </div>
+
+                <div class="editor-row recent-row" *ngIf="recentClassificationColors.length">
+                  <label class="editor-label">Recent</label>
+                  <div class="recent-swatches">
+                    <button class="recent-swatch"
+                            *ngFor="let recent of recentClassificationColors"
+                            type="button"
+                            [style.background-color]="recent"
+                            (click)="applyRecentClassificationColor(recent)"
+                            [attr.aria-label]="'Use recent color ' + recent">
+                      {{ recent }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="editor-actions">
+                <button class="btn btn-secondary" type="button" (click)="resetClassificationColor(editing)" [disabled]="!hasCustomClassificationColor(editing)">
+                  Reset to default
+                </button>
+                <button class="btn btn-primary" type="button" (click)="applyClassificationDraft()">
+                  Apply
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="classification-pickers">
+            <div class="classification-picker">
+              <span class="picker-label">Source (from)</span>
+              <div class="classification-list">
+                <div class="classification-item"
+                     *ngFor="let classification of classifications"
+                     [class.active]="classification === selectedSourceClassification"
+                     [class.hidden]="!isClassificationVisible(classification)"
+                     (click)="selectSourceClassification(classification)">
+                  <div class="classification-color" [style.background-color]="classification.color"></div>
+                  <div class="classification-info">
+                    <span class="classification-name">{{ classification.name }}</span>
+                    <span class="classification-count">{{ formatPointCount(classification.pointCount) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="classification-picker">
+              <span class="picker-label">Target (to)</span>
+              <div class="classification-list">
+                <div class="classification-item"
+                     *ngFor="let classification of classifications"
+                     [class.active]="classification === selectedClassification"
+                     [class.hidden]="!isClassificationVisible(classification)"
+                     (click)="selectClassification(classification)">
+                  <div class="classification-color" [style.background-color]="classification.color"></div>
+                  <div class="classification-info">
+                    <span class="classification-name">{{ classification.name }}</span>
+                    <span class="classification-count">{{ formatPointCount(classification.pointCount) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="classification-preview" *ngIf="pendingClassification">
+            <div class="preview-summary">
+              Previewing {{ formatPointCount(pendingClassification.previewCount) }} points:
+              {{ pendingClassification.source.name }} → {{ pendingClassification.target.name }}
+            </div>
+            <div class="preview-actions">
+              <button class="btn btn-primary" type="button" (click)="onApplyPendingClassification($event)">
+                Apply Changes
+              </button>
+              <button class="btn btn-secondary" type="button" (click)="onDiscardPendingClassification($event)">
+                Discard Preview
+              </button>
+            </div>
+          </div>
+
+          <div class="undo-redo-section">
+            <div class="btn-group">
+              <button class="btn btn-block" [disabled]="!canUndo" (click)="undo()" title="Undo (Ctrl+Z)">
+                ⟲ Undo
+              </button>
+              <button class="btn btn-block" [disabled]="!canRedo" (click)="redo()" title="Redo (Ctrl+Shift+Z)">
+                ⟳ Redo
+              </button>
+            </div>
+          </div>
+
+          <button class="btn btn-block btn-secondary" (click)="addCustomClassification()">
+            + Add classification
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <section *ngIf="false" class="viewer-bottom" [class.collapsed]="!bottomPanelOpen">
+    <div class="bottom-tabs">
+      <button class="bottom-tab" [class.active]="bottomPanelTab === 'general'" (click)="bottomPanelTab = 'general'">General</button>
+      <button class="bottom-tab" [class.active]="bottomPanelTab === 'attributes'" (click)="bottomPanelTab = 'attributes'">Attributes</button>
+      <button class="bottom-tab" [class.active]="bottomPanelTab === 'statistics'" (click)="bottomPanelTab = 'statistics'">Statistics</button>
+      <button class="bottom-tab" [class.active]="bottomPanelTab === 'measurements'" (click)="bottomPanelTab = 'measurements'">Measurements</button>
+      <button class="bottom-tab" [class.active]="bottomPanelTab === 'history'" (click)="bottomPanelTab = 'history'">History</button>
+      <button class="bottom-toggle" type="button" (click)="toggleBottomPanel()" title="{{ bottomPanelOpen ? 'Collapse' : 'Expand' }} properties panel">
+        {{ bottomPanelOpen ? '▼' : '▲' }}
+      </button>
+    </div>
+
+    <div class="bottom-content">
+      <div class="tab-panel" *ngIf="bottomPanelTab === 'general'">
+        <div class="properties-grid">
+          <div class="property-row">
+            <span class="property-label">File name</span>
+            <span class="property-value">{{ (selectedPointCloud$ | async)?.name || 'N/A' }}</span>
+          </div>
+          <div class="property-row">
+            <span class="property-label">Format</span>
+            <span class="property-value">COPC</span>
+          </div>
+          <div class="property-row">
+            <span class="property-label">Total points</span>
+            <span class="property-value">{{ formatPointCount(totalPoints) }}</span>
+          </div>
+          <div class="property-row">
+            <span class="property-label">File size</span>
+            <span class="property-value">{{ formatFileSize(fileSize) }}</span>
+          </div>
+          <div class="property-row">
+            <span class="property-label">Coverage area</span>
+            <span class="property-value">{{ formatArea(coverageArea) }}</span>
+          </div>
+          <div class="property-row">
+            <span class="property-label">CRS</span>
+            <span class="property-value">EPSG:32613 (UTM Zone 13N)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" *ngIf="bottomPanelTab === 'attributes'">
+        <div class="properties-grid">
+          <div class="property-section">
+            <h4>Selected point</h4>
+            <div class="property-row">
+              <span class="property-label">Position X</span>
+              <span class="property-value">-</span>
+            </div>
+            <div class="property-row">
+              <span class="property-label">Position Y</span>
+              <span class="property-value">-</span>
+            </div>
+            <div class="property-row">
+              <span class="property-label">Position Z</span>
+              <span class="property-value">-</span>
+            </div>
+            <div class="property-row">
+              <span class="property-label">RGB</span>
+              <span class="property-value">-</span>
+            </div>
+            <div class="property-row">
+              <span class="property-label">Intensity</span>
+              <span class="property-value">-</span>
+            </div>
+            <div class="property-row">
+              <span class="property-label">Classification</span>
+              <span class="property-value">-</span>
+            </div>
+            <div class="property-row">
+              <span class="property-label">Return number</span>
+              <span class="property-value">-</span>
+            </div>
+            <div class="property-row">
+              <span class="property-label">Scan angle</span>
+              <span class="property-value">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" *ngIf="bottomPanelTab === 'statistics'">
+        <div class="statistics-grid">
+          <div class="stat-card">
+            <h4>Point cloud statistics</h4>
+            <div class="property-row">
+              <span class="property-label">Total points</span>
+              <span class="property-value">{{ formatPointCount(totalPoints) }}</span>
+            </div>
+            <div class="property-row">
+              <span class="property-label">Rendered points</span>
+              <span class="property-value">{{ formatPointCount(renderedPoints) }}</span>
+            </div>
+            <div class="property-row">
+              <span class="property-label">Classified points</span>
+              <span class="property-value">{{ formatPointCount(classifiedPoints) }}</span>
+            </div>
+            <div class="property-row">
+              <span class="property-label">Classification %</span>
+              <span class="property-value">{{ totalPoints > 0 ? ((classifiedPoints / totalPoints) * 100).toFixed(1) : 0 }}%</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <h4>Classification breakdown</h4>
+            <div class="classification-stats">
+              <div class="stat-row" *ngFor="let classification of classifications">
+                <div class="stat-color" [style.background-color]="classification.color"></div>
+                <span class="stat-name">{{ classification.name }}</span>
+                <span class="stat-count">{{ formatPointCount(classification.pointCount) }}</span>
+                <span class="stat-percent">{{ totalPoints > 0 ? ((classification.pointCount / totalPoints) * 100).toFixed(1) : 0 }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" *ngIf="bottomPanelTab === 'measurements'">
+        <div class="measurements-list" *ngIf="savedMeasurements.length > 0">
+          <div class="measurement-item" *ngFor="let measurement of savedMeasurements; let i = index">
+            <div class="measurement-header">
+              <span class="measurement-number">#{{ i + 1 }}</span>
+              <span class="measurement-distance">{{ measurement.distance.toFixed(2) }} m</span>
+              <button class="btn-icon-sm" (click)="deleteMeasurement(measurement.id)">×</button>
+            </div>
+            <div class="measurement-coords">
+              <div>P1: {{ measurement.points[0].x.toFixed(1) }}, {{ measurement.points[0].y.toFixed(1) }}, {{ measurement.points[0].z.toFixed(1) }}</div>
+              <div>P2: {{ measurement.points[1].x.toFixed(1) }}, {{ measurement.points[1].y.toFixed(1) }}, {{ measurement.points[1].z.toFixed(1) }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="history-empty" *ngIf="savedMeasurements.length === 0">
+          No measurements yet. Use the measurement tool to capture distances.
+        </div>
+      </div>
+
+      <div class="tab-panel" *ngIf="bottomPanelTab === 'history'">
+        <div class="history-list">
+          <div class="history-item" *ngFor="let entry of activityLog.slice(0, 20)">
+            <span class="history-icon">{{ entry.icon }}</span>
+            <div class="history-content">
+              <div class="history-message">{{ entry.message }}</div>
+              <div class="history-details" *ngIf="entry.details">{{ entry.details }}</div>
+            </div>
+            <span class="history-time">{{ formatTimestamp(entry.timestamp) }}</span>
+          </div>
+          <div class="history-empty" *ngIf="activityLog.length === 0">
+            No activity recorded yet.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer *ngIf="false" class="viewer-status">
+    <div class="status-left">
+      <span class="status-item">Camera: X {{ cameraX.toFixed(1) }}, Y {{ cameraY.toFixed(1) }}, Z {{ cameraZ.toFixed(1) }}</span>
+    </div>
+    <div class="status-right">
+      <span class="status-item">Az {{ cameraAzimuth.toFixed(1) }}°</span>
+      <span class="status-item">Pitch {{ cameraPitch.toFixed(1) }}°</span>
+    </div>
+  </footer>
+</div>

@@ -1,0 +1,52 @@
+// Theme Configuration
+// Maps to unified design tokens from design-tokens.scss
+
+// Force dark color scheme globally
+:root {
+  color-scheme: dark;
+
+  // Colors
+  --primary-color: var(--accent-blue);
+  --accent-color: var(--accent-green);
+  --warn-color: var(--accent-red);
+
+  // Background colors
+  --bg-primary: var(--bg-app);
+  --bg-secondary: var(--bg-secondary);
+  --bg-tertiary: var(--bg-tertiary);
+  --bg-panel: var(--bg-secondary);
+
+  // Text colors
+  --text-primary: var(--text-primary);
+  --text-secondary: var(--text-secondary);
+  --text-hint: var(--text-hint);
+
+  // Border colors
+  --border-color: var(--border-primary);
+  --border-light: var(--border-secondary);
+
+  // Accent colors
+  --accent-blue: var(--accent-blue);
+  --accent-green: var(--accent-green);
+  --accent-orange: var(--accent-yellow);
+
+  // Spacing
+  --spacing-xs: var(--space-xs);
+  --spacing-sm: var(--space-sm);
+  --spacing-md: var(--space-md);
+  --spacing-lg: var(--space-lg);
+  --spacing-xl: var(--space-xl);
+  --spacing-2xl: var(--space-2xl);
+  --spacing-3xl: var(--space-3xl);
+
+  // Border radius
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+}
+
+// Dark theme class (optional override)
+.dark-theme {
+  color-scheme: dark;
+}

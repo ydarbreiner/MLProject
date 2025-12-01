@@ -1,0 +1,105 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: pointcloud_viewer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres/pointcloud_viewer
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+      - ./uploads:/app/uploads
+      - ./pointclouds:/app/pointclouds
+      - ./scripts:/app/scripts
+    deploy:
+      resources:
+        limits:
+          memory: 18g
+        reservations:
+          memory: 12g
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: sh -c "python run_migrations.py && celery -A app.core.celery_app.celery_app worker --loglevel=info"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres/pointcloud_viewer
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+      - ./uploads:/app/uploads
+      - ./pointclouds:/app/pointclouds
+      - ./scripts:/app/scripts
+    deploy:
+      resources:
+        limits:
+          memory: 12g
+        reservations:
+          memory: 6g
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  # Angular Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/angular.json:/app/angular.json
+      - ./frontend/package.json:/app/package.json
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend/tsconfig.app.json:/app/tsconfig.app.json
+      - ./frontend/tsconfig.spec.json:/app/tsconfig.spec.json
+      - ./frontend/public:/app/public
+      - ./frontend/proxy.conf.json:/app/proxy.conf.json
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_OPTIONS=--max-old-space-size=4096
+    depends_on:
+      - backend
+      - celery
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

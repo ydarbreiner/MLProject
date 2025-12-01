@@ -1,0 +1,42 @@
+<mat-toolbar class="main-toolbar">
+  <div class="toolbar-content">
+    <div class="tool-group">
+      <button mat-icon-button
+              [class.active]="currentTool === 'select'"
+              (click)="onSelectTool('select')"
+              matTooltip="Select Tool">
+        <mat-icon>mouse</mat-icon>
+      </button>
+
+      <button mat-icon-button
+              [class.active]="currentTool === 'measure'"
+              (click)="onMeasure()"
+              matTooltip="Measure Distance">
+        <mat-icon>straighten</mat-icon>
+      </button>
+
+      <button mat-icon-button
+              [class.active]="currentTool === 'annotate'"
+              (click)="onAnnotate()"
+              matTooltip="Add Annotation">
+        <mat-icon>comment</mat-icon>
+      </button>
+    </div>
+
+    <div class="tool-group">
+      <button mat-icon-button
+              [class.active]="currentTool === 'slice'"
+              (click)="onSlice()"
+              matTooltip="Slice View">
+        <mat-icon>content_cut</mat-icon>
+      </button>
+
+      <button mat-icon-button
+              [class.active]="currentTool === 'clip'"
+              (click)="onClip()"
+              matTooltip="Clip Region">
+        <mat-icon>crop</mat-icon>
+      </button>
+    </div>
+  </div>
+</mat-toolbar>

@@ -1,0 +1,35 @@
+<mat-toolbar class="navigation-toolbar">
+  <div class="toolbar-content">
+    <div class="nav-group">
+      <button mat-icon-button
+              (click)="onResetView()"
+              matTooltip="Reset View"
+              class="nav-btn">
+        <mat-icon>home</mat-icon>
+      </button>
+
+      <button mat-icon-button
+              (click)="onFitToView()"
+              matTooltip="Fit to View"
+              class="nav-btn">
+        <mat-icon>center_focus_strong</mat-icon>
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <button mat-icon-button
+              (click)="onToggleFullscreen()"
+              matTooltip="Toggle Fullscreen"
+              class="nav-btn">
+        <mat-icon>fullscreen</mat-icon>
+      </button>
+
+      <button mat-icon-button
+              (click)="onExportImage()"
+              matTooltip="Export Image"
+              class="nav-btn">
+        <mat-icon>camera_alt</mat-icon>
+      </button>
+    </div>
+  </div>
+</mat-toolbar>

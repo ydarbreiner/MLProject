@@ -1,0 +1,387 @@
+<div
+  class="projects-shell"
+  *ngIf="{ projects: projects$ | async, selected: selectedProject$ | async, isCreate: isCreateMode$ | async, isLoading: isLoading$ | async, isSaving: isSaving$ | async } as vm"
+>
+  <aside class="projects-shell__sidebar">
+    <div class="sidebar__header">
+      <div class="sidebar__title">
+        <h2>Projects</h2>
+        <span>{{ vm.projects?.length || 0 }} total</span>
+      </div>
+      <button type="button" class="sidebar__new" (click)="startCreate()">
+        <mat-icon fontIcon="add"></mat-icon>
+        New
+      </button>
+    </div>
+
+    <div class="sidebar__list" *ngIf="vm.projects?.length; else emptyState">
+      <button
+        class="sidebar__item"
+        *ngFor="let project of vm.projects"
+        type="button"
+        (click)="selectProject(project)"
+        [class.is-active]="vm.selected?.id === project.id && !vm.isCreate"
+      >
+        <div class="sidebar__item-title">{{ project.name }}</div>
+        <div class="sidebar__item-meta">
+          <span>{{ project.pointCloudCount }} datasets</span>
+          <span>•</span>
+          <span>{{ project.fileCount }} files</span>
+        </div>
+      </button>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="sidebar__empty">
+        <p>Start by creating a project.</p>
+        <p>Then assign poles and datasets.</p>
+      </div>
+    </ng-template>
+  </aside>
+
+  <section class="projects-shell__workspace">
+    <div class="workspace__spinner" *ngIf="vm.isLoading">
+      <mat-progress-spinner diameter="28" mode="indeterminate"></mat-progress-spinner>
+      <span>Syncing projects…</span>
+    </div>
+
+    <header class="workspace__header">
+      <div class="workspace__title">
+        <span class="workspace__eyebrow">
+          {{ vm.isCreate ? 'Step 1 · Create project' : 'Project workspace' }}
+        </span>
+        <h1>
+          {{
+            vm.isCreate
+              ? 'Create a new project'
+              : (vm.selected?.name || 'Select a project to begin')
+          }}
+        </h1>
+        <p *ngIf="!vm.isCreate && vm.selected" class="workspace__subtitle">
+          {{
+            vm.selected.description
+              || 'Add pole geometry and LAZ datasets to complete this corridor.'
+          }}
+        </p>
+      </div>
+
+      <div class="workspace__actions" *ngIf="!vm.isCreate && vm.selected">
+        <button type="button" class="workspace__action" (click)="triggerPoleUpload(poleUpload)">
+          <mat-icon fontIcon="account_tree"></mat-icon>
+          Import poles
+        </button>
+        <button type="button" class="workspace__action" (click)="triggerDatasetUpload()">
+          <mat-icon fontIcon="cloud_upload"></mat-icon>
+          Add LAZ dataset
+        </button>
+        <button
+          type="button"
+          class="workspace__action workspace__action--danger"
+          (click)="deleteProject(vm.selected)"
+          [disabled]="vm.isSaving"
+        >
+          <mat-icon fontIcon="delete"></mat-icon>
+          Delete project
+        </button>
+        <button
+          type="button"
+          class="workspace__action workspace__action--primary"
+          (click)="saveProject()"
+          [disabled]="projectForm.invalid || vm.isSaving"
+        >
+          <mat-progress-spinner *ngIf="vm.isSaving" diameter="18" mode="indeterminate"></mat-progress-spinner>
+          <span *ngIf="!vm.isSaving">Save changes</span>
+          <span *ngIf="vm.isSaving">Saving…</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="workflow" *ngIf="vm.selected || vm.isCreate">
+      <div class="workflow__step" [class.is-active]="vm.isCreate" [class.is-complete]="!vm.isCreate && !!vm.selected">
+        <span class="workflow__index">1</span>
+        <div>
+          <div class="workflow__label">Create project</div>
+          <div class="workflow__hint">Name, metadata, centroid, and bounds</div>
+        </div>
+      </div>
+      <div
+        class="workflow__step"
+        [class.is-active]="!vm.isCreate && poleCount(vm.selected) === 0"
+        [class.is-complete]="!vm.isCreate && poleCount(vm.selected) > 0"
+      >
+        <span class="workflow__index">2</span>
+        <div>
+          <div class="workflow__label">Import poles</div>
+          <div class="workflow__hint">
+            {{
+              poleCount(vm.selected) > 0
+                ? poleCount(vm.selected) + ' poles on map'
+                : 'Upload KML/KMZ with pole locations'
+            }}
+          </div>
+        </div>
+      </div>
+      <div
+        class="workflow__step"
+        [class.is-active]="!vm.isCreate && poleCount(vm.selected) > 0 && datasetCount(vm.selected) === 0"
+        [class.is-complete]="!vm.isCreate && datasetCount(vm.selected) > 0"
+      >
+        <span class="workflow__index">3</span>
+        <div>
+          <div class="workflow__label">Attach LAZ datasets</div>
+          <div class="workflow__hint">
+            {{
+              datasetCount(vm.selected) > 0
+                ? datasetCount(vm.selected) + ' datasets linked'
+                : 'Upload LAS/LAZ to unlock analysis'
+            }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="workspace__grid">
+      <form class="panel panel--form" [formGroup]="projectForm" (ngSubmit)="saveProject()">
+        <div class="panel__header">
+          <div>
+            <h2>Project details</h2>
+            <p>Set the foundation before layering poles and datasets.</p>
+          </div>
+          <button mat-stroked-button type="submit" [disabled]="projectForm.invalid || vm.isSaving">
+            <mat-progress-spinner *ngIf="vm.isSaving" diameter="18" mode="indeterminate"></mat-progress-spinner>
+            <span *ngIf="!vm.isSaving">Save</span>
+            <span *ngIf="vm.isSaving">Saving…</span>
+          </button>
+        </div>
+        <div class="panel__body">
+          <div class="form-row">
+            <label>Name</label>
+            <input formControlName="name" placeholder="Example Corridor" />
+          </div>
+
+          <div class="form-row">
+            <label>Description</label>
+            <textarea rows="3" formControlName="description" placeholder="Optional description"></textarea>
+          </div>
+
+          <div class="form-row form-row--split">
+            <div>
+              <label>Centroid latitude</label>
+              <input type="number" formControlName="centroidLat" placeholder="39.7392" />
+            </div>
+            <div>
+              <label>Centroid longitude</label>
+              <input type="number" formControlName="centroidLng" placeholder="-104.9903" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label>Geometry (GeoJSON)</label>
+            <textarea rows="6" formControlName="geometry" placeholder="Paste GeoJSON geometry"></textarea>
+          </div>
+
+          <div class="form-row">
+            <label>Metadata (JSON)</label>
+            <textarea rows="4" formControlName="metadata" placeholder='{"city": "Denver"}'></textarea>
+          </div>
+        </div>
+      </form>
+
+      <section class="panel panel--map">
+        <div class="panel__header">
+          <div>
+            <h2>Map preview</h2>
+            <p>Geometry, centroid, and poles render instantly once saved.</p>
+          </div>
+          <div class="map-layer-controls" role="group" aria-label="Map layers">
+            <button
+              type="button"
+              class="map-layer-button"
+              [class.is-active]="mapLayerVisibility.geometry"
+              (click)="toggleMapLayer('geometry')"
+              [attr.aria-pressed]="mapLayerVisibility.geometry"
+            >
+              <mat-icon fontIcon="timeline"></mat-icon>
+              <span>Flight paths</span>
+            </button>
+            <button
+              type="button"
+              class="map-layer-button"
+              [class.is-active]="mapLayerVisibility.poles"
+              (click)="toggleMapLayer('poles')"
+              [attr.aria-pressed]="mapLayerVisibility.poles"
+            >
+              <mat-icon fontIcon="adjust"></mat-icon>
+              <span>Poles</span>
+            </button>
+          </div>
+        </div>
+        <div class="panel__body panel__body--map">
+          <div class="map-container" #mapContainer></div>
+          <p class="map-hint" *ngIf="!vm.selected && !vm.isCreate">Select a project to preview geometry.</p>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel panel--metrics" *ngIf="!vm.isCreate && vm.selected as project">
+      <div class="metrics-grid">
+        <div class="metric">
+          <span class="metric__label">Datasets</span>
+          <span class="metric__value">{{ project.pointCloudCount }}</span>
+        </div>
+        <div class="metric">
+          <span class="metric__label">Files</span>
+          <span class="metric__value">{{ project.fileCount }}</span>
+        </div>
+        <div class="metric">
+          <span class="metric__label">Poles</span>
+          <span class="metric__value">{{ project.poles.length || 0 }}</span>
+        </div>
+        <div class="metric">
+          <span class="metric__label">Storage</span>
+          <span class="metric__value">{{ formatFileSize(project.totalFileSize) }}</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="assets-grid" *ngIf="!vm.isCreate && vm.selected as projectDetails">
+      <section class="panel panel--poles">
+        <div class="panel__header">
+          <div>
+            <h2>Poles</h2>
+            <p>Import structure locations from KML/KMZ and preview them on the map.</p>
+          </div>
+          <button type="button" class="panel__header-action" (click)="triggerPoleUpload(poleUpload)">
+            <mat-icon fontIcon="upload_file"></mat-icon>
+            Import KML/KMZ
+          </button>
+        </div>
+        <div class="panel__body">
+          <div class="pole-counter" *ngIf="projectDetails.poles.length as poleCount">
+            <span class="pole-counter__value">{{ poleCount }}</span>
+            <span class="pole-counter__label">poles mapped</span>
+          </div>
+          <div class="poles-list" *ngIf="projectDetails.poles as poles; else noPoles">
+            <div class="pole" *ngFor="let pole of poles; let idx = index">
+              <div class="pole__index">{{ idx + 1 }}</div>
+              <div class="pole__body">
+                <div class="pole__name">{{ pole.name || 'Pole ' + (idx + 1) }}</div>
+                <div class="pole__coords">{{ pole.lat | number: '1.5-5' }}, {{ pole.lng | number: '1.5-5' }}</div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noPoles>
+            <div class="empty-state">
+              <p>No poles yet.</p>
+              <p>Upload a pole KML export to populate this list.</p>
+            </div>
+          </ng-template>
+        </div>
+      </section>
+
+      <section class="panel panel--files">
+        <div class="panel__header">
+          <div>
+            <h2>Project files</h2>
+            <p>Attach KML, design notes, or metadata to keep context close by.</p>
+          </div>
+          <label class="panel__header-action" (click)="prepareFileAttachment()">
+            <mat-icon fontIcon="attach_file"></mat-icon>
+            <span>Add file</span>
+            <input type="file" hidden (change)="onFileChange($event)" />
+          </label>
+        </div>
+        <div class="panel__body">
+          <div class="pending-upload" *ngIf="selectedFile as pendingFile">
+            <div class="pending-upload__info">
+              <span class="pending-upload__name">{{ pendingFile.name }}</span>
+              <span class="pending-upload__size">{{ formatFileSize(pendingFile.size || 0) }}</span>
+            </div>
+            <div class="pending-upload__form">
+              <input
+                type="text"
+                [(ngModel)]="fileDescription"
+                placeholder="Optional description"
+                name="fileDescription"
+              />
+              <button type="button" (click)="uploadAttachment()">Upload</button>
+            </div>
+          </div>
+
+          <div
+            class="upload-feedback"
+            *ngIf="uploadFeedback"
+            [class.upload-feedback--warning]="uploadFeedbackType === 'warning'"
+            [class.upload-feedback--error]="uploadFeedbackType === 'error'"
+          >
+            {{ uploadFeedback }}
+          </div>
+
+          <div class="attachments" *ngIf="projectDetails.files.length; else noFiles">
+            <div class="attachment" *ngFor="let file of projectDetails.files">
+              <div class="attachment__icon">
+                <span>{{ getFileExtension(file.originalFilename) }}</span>
+              </div>
+              <div class="attachment__body">
+                <div class="attachment__name">{{ file.originalFilename }}</div>
+                <div class="attachment__meta">
+                  <span>{{ formatFileSize(file.size) }}</span>
+                  <span *ngIf="file.description">• {{ file.description }}</span>
+                </div>
+              </div>
+              <div class="attachment__actions">
+                <a mat-icon-button [href]="file.downloadUrl" matTooltip="Download" target="_blank" rel="noopener">
+                  <mat-icon fontIcon="download"></mat-icon>
+                </a>
+                <button type="button" mat-icon-button color="warn" (click)="removeAttachment(file)" matTooltip="Delete">
+                  <mat-icon fontIcon="delete"></mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+          <ng-template #noFiles>
+            <div class="empty-state">
+              <p>No files uploaded yet.</p>
+              <p>Attach design docs or pole exports here.</p>
+            </div>
+          </ng-template>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel panel--datasets" *ngIf="!vm.isCreate && vm.selected as projectDetails">
+      <div class="panel__header">
+        <div>
+          <h2>Datasets</h2>
+          <p>Linked LAS/LAZ datasets ready for the viewer.</p>
+        </div>
+        <button type="button" class="panel__header-action" (click)="triggerDatasetUpload()">
+          <mat-icon fontIcon="cloud_upload"></mat-icon>
+          Link dataset
+        </button>
+      </div>
+      <div class="panel__body">
+        <div class="datasets-list" *ngIf="projectDetails.pointClouds.length; else noDatasets">
+          <div class="dataset" *ngFor="let cloud of projectDetails.pointClouds">
+            <div class="dataset__summary">
+              <div class="dataset__name">{{ cloud.name }}</div>
+              <div class="dataset__meta">{{ cloud.status }} • {{ cloud.date | date: 'medium' }}</div>
+            </div>
+            <div class="dataset__actions">
+              <span class="dataset__size">{{ formatFileSize(cloud.fileSize || 0) }}</span>
+              <button mat-stroked-button color="primary" [routerLink]="['/viewer', cloud.id]">Open</button>
+            </div>
+          </div>
+        </div>
+        <ng-template #noDatasets>
+          <div class="empty-state">
+            <p>No datasets linked yet.</p>
+            <p>Upload LAZ files to bring this project to life.</p>
+          </div>
+        </ng-template>
+      </div>
+    </section>
+
+    <input #poleUpload type="file" accept=".kml,.kmz" hidden (change)="onFileChange($event)" />
+  </section>
+</div>

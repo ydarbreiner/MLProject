@@ -1,0 +1,201 @@
+<div class="advanced-controls-panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <mat-icon class="panel-icon">tune</mat-icon>
+        <span>Advanced Controls</span>
+      </div>
+      <button mat-icon-button class="collapse-btn" (click)="toggleExpanded()">
+        <mat-icon>{{ isExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </button>
+    </div>
+    
+    <div class="panel-content" [class.expanded]="isExpanded">
+      <div class="content-sections">
+        <div class="control-section">
+          <div class="section-header">
+            <mat-icon>visibility</mat-icon>
+            <span>Visualization</span>
+          </div>
+          
+          <div class="control-grid">
+            <div class="control-item">
+              <label class="control-label">Point Size</label>
+              <mat-slider class="control-slider" min="1" max="10" step="0.5">
+                <input matSliderThumb [value]="pointSize" (valueChange)="onPointSizeChange($event)">
+              </mat-slider>
+            </div>
+            
+            <div class="control-item">
+              <label class="control-label">Point Budget</label>
+              <mat-form-field appearance="outline" class="control-field">
+                <mat-select [value]="pointBudget" (selectionChange)="onPointBudgetChange($event)">
+                  <mat-option value="1000000">1M</mat-option>
+                  <mat-option value="5000000">5M</mat-option>
+                  <mat-option value="10000000">10M</mat-option>
+                  <mat-option value="25000000">25M</mat-option>
+                  <mat-option value="50000000">50M</mat-option>
+                  <mat-option value="100000000">100M</mat-option>
+                  <mat-option value="150000000">150M</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            
+            <div class="control-item">
+              <label class="control-label">Color Mode</label>
+              <mat-form-field appearance="outline" class="control-field">
+                <mat-select [value]="colorMode" (selectionChange)="onColorModeChange($event)">
+                  <mat-option value="rgb">RGB</mat-option>
+                  <mat-option value="elevation">Elevation</mat-option>
+                  <mat-option value="intensity">Intensity</mat-option>
+                  <mat-option value="classification">Classification</mat-option>
+                  <mat-option value="return">Return Number</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+  
+        <div class="control-section">
+          <div class="section-header">
+            <mat-icon>high_quality</mat-icon>
+            <span>Quality</span>
+          </div>
+          
+          <div class="control-grid">
+            <div class="control-item checkbox-item">
+              <mat-checkbox [checked]="edlEnabled" (change)="onEDLChange($event)">
+                Eye Dome Lighting (EDL)
+              </mat-checkbox>
+            </div>
+            
+            <div class="control-item checkbox-item">
+              <mat-checkbox [checked]="showBoundingBox" (change)="onBoundingBoxChange($event)">
+                Show Bounding Box
+              </mat-checkbox>
+            </div>
+
+            <div class="control-item checkbox-item">
+              <mat-checkbox [checked]="showHull" (change)="onHullChange($event)">
+                Show Concave Hull
+              </mat-checkbox>
+            </div>
+
+            <div class="control-item checkbox-item">
+              <mat-checkbox [checked]="showStats" (change)="onStatsChange($event)">
+                Show Performance Stats
+              </mat-checkbox>
+            </div>
+          </div>
+        </div>
+  
+        <div class="control-section">
+          <div class="section-header">
+            <mat-icon>videocam</mat-icon>
+            <span>Camera</span>
+          </div>
+          
+          <div class="control-grid">
+            <div class="control-item">
+              <label class="control-label">Field of View</label>
+              <mat-slider class="control-slider" min="30" max="120" step="5">
+                <input matSliderThumb [value]="fov" (valueChange)="onFOVChange($event)">
+              </mat-slider>
+            </div>
+            
+            <div class="control-item">
+              <label class="control-label">Move Speed</label>
+              <mat-slider class="control-slider" min="0.1" max="5.0" step="0.1">
+                <input matSliderThumb [value]="moveSpeed" (valueChange)="onMoveSpeedChange($event)">
+              </mat-slider>
+            </div>
+
+            <div class="control-item">
+              <label class="control-label">Rotation Sensitivity</label>
+              <mat-slider class="control-slider" min="0.1" max="3.0" step="0.1">
+                <input matSliderThumb [value]="cameraSettings.rotationSensitivity"
+                       (valueChange)="onRotationSensitivityChange($event)">
+              </mat-slider>
+              <div class="control-helper">{{ cameraSettings.rotationSensitivity.toFixed(1) }}×</div>
+            </div>
+
+            <div class="control-item">
+              <label class="control-label">Pan Sensitivity</label>
+              <mat-slider class="control-slider" min="0.1" max="3.0" step="0.1">
+                <input matSliderThumb [value]="cameraSettings.panSensitivity"
+                       (valueChange)="onPanSensitivityChange($event)">
+              </mat-slider>
+              <div class="control-helper">{{ cameraSettings.panSensitivity.toFixed(1) }}×</div>
+            </div>
+
+            <div class="control-item">
+              <label class="control-label">Zoom Sensitivity</label>
+              <mat-slider class="control-slider" min="0.1" max="3.0" step="0.1">
+                <input matSliderThumb [value]="cameraSettings.zoomSensitivity"
+                       (valueChange)="onZoomSensitivityChange($event)">
+              </mat-slider>
+              <div class="control-helper">{{ cameraSettings.zoomSensitivity.toFixed(1) }}×</div>
+            </div>
+
+            <div class="control-item checkbox-item">
+              <mat-checkbox [checked]="cameraSettings.enableDamping"
+                            (change)="onDampingToggle($event.checked)">
+                Enable Damping
+              </mat-checkbox>
+            </div>
+
+            <div class="control-item" *ngIf="cameraSettings.enableDamping">
+              <label class="control-label">Damping Factor</label>
+              <mat-slider class="control-slider" min="0.05" max="0.5" step="0.01">
+                <input matSliderThumb [value]="cameraSettings.dampingFactor"
+                       (valueChange)="onDampingFactorChange($event)">
+              </mat-slider>
+              <div class="control-helper">{{ cameraSettings.dampingFactor.toFixed(2) }}</div>
+            </div>
+          </div>
+        </div>
+  
+        <div class="control-section">
+          <div class="section-header">
+            <mat-icon>landscape</mat-icon>
+            <span>Environment</span>
+          </div>
+          
+          <div class="control-grid">
+            <div class="control-item">
+              <label class="control-label">Background</label>
+              <mat-form-field appearance="outline" class="control-field">
+                <mat-select [value]="background" (selectionChange)="onBackgroundChange($event)">
+                  <mat-option value="gradient">Gradient</mat-option>
+                  <mat-option value="skybox">Skybox</mat-option>
+                  <mat-option value="solid">Solid Color</mat-option>
+                  <mat-option value="transparent">Transparent</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+  
+        <div class="control-section">
+          <div class="section-header">
+            <mat-icon>speed</mat-icon>
+            <span>Performance</span>
+          </div>
+          
+          <div class="control-grid">
+            <div class="control-item">
+              <label class="control-label">LOD Scale</label>
+              <mat-slider class="control-slider" min="0.5" max="3.0" step="0.1">
+                <input matSliderThumb [value]="lodScale" (valueChange)="onLODScaleChange($event)">
+              </mat-slider>
+            </div>
+            
+            <div class="control-item checkbox-item">
+              <mat-checkbox [checked]="freezeLoading" (change)="onFreezeLoadingChange($event)">
+                Freeze Loading
+              </mat-checkbox>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

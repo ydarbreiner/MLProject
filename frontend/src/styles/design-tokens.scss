@@ -1,0 +1,169 @@
+// Unified Design Tokens - Based on Projects Dashboard Style
+// Clean, dark design with subtle blur effects and solid colors
+
+:root {
+  // ===== Color Palette =====
+
+  // Primary Background Colors (matching projects dashboard)
+  --bg-app: #050607;                           // Main app background
+  --bg-primary: #0a0b0d;                       // Primary surface
+  --bg-secondary: rgba(0, 0, 0, 0.55);         // Secondary surface (panels) - same as projects
+  --bg-tertiary: rgba(255, 255, 255, 0.03);    // Tertiary surface (subtle cards)
+  --bg-elevated: rgba(255, 255, 255, 0.05);    // Elevated elements (inputs)
+  --bg-hover: rgba(255, 255, 255, 0.12);       // Hover state
+  --bg-active: rgba(255, 255, 255, 0.07);      // Active state
+
+  // Text Colors (high contrast for visibility)
+  --text-primary: #f4f5f7;                     // Primary text - bright white
+  --text-secondary: rgba(244, 245, 247, 0.7);  // Secondary text - more visible
+  --text-tertiary: rgba(244, 245, 247, 0.6);   // Tertiary text - labels
+  --text-hint: rgba(244, 245, 247, 0.6);       // Hints and labels
+  --text-disabled: rgba(244, 245, 247, 0.4);   // Disabled text
+
+  // Border Colors
+  --border-primary: rgba(255, 255, 255, 0.08);   // Primary borders
+  --border-secondary: rgba(255, 255, 255, 0.12); // Secondary borders
+  --border-hover: rgba(255, 255, 255, 0.25);     // Hover borders
+  --border-active: rgba(255, 255, 255, 0.35);    // Active/focus borders
+  --border-strong: rgba(255, 255, 255, 0.5);     // Strong emphasis borders
+  --border-dashed: rgba(255, 255, 255, 0.14);    // Dashed borders for empty states
+
+  // Accent Colors
+  --accent-blue: #0ea5e9;                      // Primary action color
+  --accent-blue-hover: #0284c7;                // Blue hover
+  --accent-green: #22c55e;                     // Success/positive
+  --accent-red: #ef4444;                       // Error/danger
+  --accent-yellow: #eab308;                    // Warning
+  --accent-purple: #a855f7;                    // Info/secondary
+
+  // Brand Colors
+  --brand-primary: #f5f5f5;                    // Primary brand (white for primary buttons)
+  --brand-on-primary: #050607;                 // Text on primary brand
+
+  // ===== Spacing System =====
+  --space-xs: 0.25rem;    // 4px
+  --space-sm: 0.5rem;     // 8px
+  --space-md: 0.75rem;    // 12px
+  --space-lg: 1rem;       // 16px
+  --space-xl: 1.5rem;     // 24px
+  --space-2xl: 2rem;      // 32px
+  --space-3xl: 2.5rem;    // 40px
+  --space-4xl: 3rem;      // 48px
+
+  // ===== Border Radius =====
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 16px;
+  --radius-2xl: 18px;
+  --radius-3xl: 20px;
+  --radius-full: 999px;
+
+  // ===== Typography =====
+  --font-xs: 0.78rem;     // 12.5px
+  --font-sm: 0.82rem;     // 13px
+  --font-base: 0.85rem;   // 13.6px
+  --font-md: 0.9rem;      // 14.4px
+  --font-lg: 0.95rem;     // 15.2px
+  --font-xl: 1rem;        // 16px
+  --font-2xl: 1.25rem;    // 20px
+  --font-3xl: 1.5rem;     // 24px
+  --font-4xl: 2rem;       // 32px
+
+  // Font weights
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  // Letter spacing
+  --tracking-tight: -0.03em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+  --tracking-wider: 0.08em;
+  --tracking-widest: 0.12em;
+
+  // ===== Shadows =====
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.35);
+  --shadow-2xl: 0 30px 60px rgba(0, 0, 0, 0.5);
+
+  // ===== Effects =====
+  --blur-sm: 8px;
+  --blur-md: 12px;
+  --blur-lg: 16px;
+  --blur-xl: 20px;
+
+  // ===== Transitions =====
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+
+  // ===== Z-Index Scale =====
+  --z-base: 1;
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-overlay: 30;
+  --z-modal: 40;
+  --z-toast: 50;
+  --z-tooltip: 60;
+}
+
+// ===== Gradients =====
+// Only use for backgrounds, not for glassmorphism overlays
+:root {
+  // Subtle background gradients (like projects dashboard)
+  --gradient-radial-top-left: radial-gradient(circle at 20% -10%, rgba(255, 255, 255, 0.06), transparent 55%);
+  --gradient-radial-top-right: radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.04), transparent 45%);
+
+  // Active state gradient (for selected items)
+  --gradient-active: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04));
+}
+
+// ===== Utility Classes =====
+
+// Blur effects (like projects dashboard sidebar)
+.blur-sidebar {
+  backdrop-filter: blur(var(--blur-xl));
+  -webkit-backdrop-filter: blur(var(--blur-xl));
+}
+
+.blur-panel {
+  backdrop-filter: blur(var(--blur-lg));
+  -webkit-backdrop-filter: blur(var(--blur-lg));
+}
+
+// Common backgrounds
+.bg-app {
+  background: var(--gradient-radial-top-left), var(--gradient-radial-top-right), var(--bg-app);
+}
+
+.bg-sidebar {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(var(--blur-xl));
+  -webkit-backdrop-filter: blur(var(--blur-xl));
+}
+
+.bg-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-xl);
+}
+
+// Common borders
+.border-primary { border: 1px solid var(--border-primary); }
+.border-secondary { border: 1px solid var(--border-secondary); }
+.border-dashed { border: 1px dashed var(--border-dashed); }
+
+// Text utilities
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+.text-hint { color: var(--text-hint); }
+
+// Transitions
+.transition-base { transition: all var(--transition-base); }
+.transition-fast { transition: all var(--transition-fast); }
+.transition-slow { transition: all var(--transition-slow); }

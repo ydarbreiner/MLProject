@@ -1,0 +1,25 @@
+<div class="scenarios-panel">
+  <div class="panel-header">
+    <div class="panel-title">
+      <mat-icon class="panel-icon">science</mat-icon>
+      <span>Analysis Scenarios</span>
+    </div>
+  </div>
+
+  <div class="panel-content">
+    <mat-list>
+      <mat-list-item
+        *ngFor="let scenario of scenarios; let i = index"
+        [class.selected]="selectedScenario === i"
+        (click)="onSelectScenario(i)">
+        <div class="scenario-item">
+          <div class="scenario-info">
+            <h4>{{ scenario.name }}</h4>
+            <p>{{ scenario.description }}</p>
+          </div>
+          <mat-icon *ngIf="selectedScenario === i">check</mat-icon>
+        </div>
+      </mat-list-item>
+    </mat-list>
+  </div>
+</div>

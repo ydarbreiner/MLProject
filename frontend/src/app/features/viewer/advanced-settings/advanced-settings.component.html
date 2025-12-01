@@ -1,0 +1,172 @@
+<div class="advanced-settings">
+    <div class="panel-header" (click)="toggleExpanded()">
+      <div class="header-content">
+        <mat-icon class="panel-icon">settings</mat-icon>
+        <span class="panel-title">Advanced</span>
+      </div>
+      <button mat-icon-button class="expand-btn">
+        <mat-icon>{{ isExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </button>
+    </div>
+  
+    <div class="panel-content" [class.expanded]="isExpanded">
+      <div class="content-inner">
+        <div class="settings-section">
+          <div class="section-header">
+            <mat-icon>color_lens</mat-icon>
+            <span>Colorization</span>
+          </div>
+          <div class="setting-item">
+            <label class="setting-label">Color Mode</label>
+            <mat-select [(value)]="selectedColorMode" (selectionChange)="onColorModeChange()" class="quality-select">
+              <mat-option value="rgb">RGB</mat-option>
+              <mat-option value="elevation">Elevation</mat-option>
+              <mat-option value="intensity">Intensity</mat-option>
+              <mat-option value="classification">Classification</mat-option>
+              <mat-option value="return_number">Return Number</mat-option>
+              <mat-option value="source_id">Source ID</mat-option>
+            </mat-select>
+          </div>
+        </div>
+        
+        <div class="settings-section">
+          <div class="section-header">
+            <mat-icon>cloud</mat-icon>
+            <span>Point Cloud Processing</span>
+          </div>
+          
+          <div class="setting-item">
+            <label class="setting-label">Point Budget</label>
+            <div class="setting-control">
+              <mat-slider 
+                min="500000" 
+                max="10000000" 
+                step="500000"
+                [(ngModel)]="pointBudget"
+                (input)="onPointBudgetChange()"
+                discrete>
+                <input matSliderThumb [(ngModel)]="pointBudget">
+              </mat-slider>
+              <span class="setting-value">{{ (pointBudget / 1000000) | number:'1.1-1' }}M</span>
+            </div>
+          </div>
+  
+          <div class="setting-item">
+            <label class="setting-label">LOD Levels</label>
+            <div class="setting-control">
+              <mat-slider 
+                min="4" 
+                max="16" 
+                step="1"
+                [(ngModel)]="lodLevels"
+                (input)="onLodLevelsChange()"
+                discrete>
+                <input matSliderThumb [(ngModel)]="lodLevels">
+              </mat-slider>
+              <span class="setting-value">{{ lodLevels }}</span>
+            </div>
+          </div>
+  
+          <div class="setting-item">
+            <label class="setting-label">Point Size</label>
+            <div class="setting-control">
+              <mat-slider 
+                min="1" 
+                max="10" 
+                step="0.5"
+                [(ngModel)]="pointSize"
+                (input)="onPointSizeChange()"
+                discrete>
+                <input matSliderThumb [(ngModel)]="pointSize">
+              </mat-slider>
+              <span class="setting-value">{{ pointSize }}px</span>
+            </div>
+          </div>
+        </div>
+  
+        <div class="settings-section">
+          <div class="section-header">
+            <mat-icon>high_quality</mat-icon>
+            <span>Quality</span>
+          </div>
+          
+          <div class="setting-item">
+            <label class="setting-label">Rendering Quality</label>
+            <mat-select 
+              [(value)]="selectedQuality"
+              (selectionChange)="onQualityChange()"
+              class="quality-select">
+              <mat-option *ngFor="let mode of qualityModes" [value]="mode.value">
+                {{ mode.label }}
+              </mat-option>
+            </mat-select>
+          </div>
+        </div>
+  
+        <div class="settings-section">
+          <div class="section-header">
+            <mat-icon>camera_alt</mat-icon>
+            <span>Camera</span>
+          </div>
+          
+          <div class="setting-item">
+            <label class="setting-label">Field of View</label>
+            <div class="setting-control">
+              <mat-slider 
+                min="30" 
+                max="120" 
+                step="5"
+                [(ngModel)]="fov"
+                (input)="onFovChange()"
+                discrete>
+                <input matSliderThumb [(ngModel)]="fov">
+              </mat-slider>
+              <span class="setting-value">{{ fov }}°</span>
+            </div>
+          </div>
+        </div>
+  
+        <div class="settings-section">
+          <div class="section-header">
+            <mat-icon>color_lens</mat-icon>
+            <span>Visual Effects</span>
+          </div>
+          
+          <div class="checkbox-item">
+            <mat-checkbox 
+              [(ngModel)]="enableEDL"
+              (change)="onSettingToggle('EDL', $event.checked)">
+              Enable EDL (Eye Dome Lighting)
+            </mat-checkbox>
+          </div>
+  
+          <div class="checkbox-item">
+            <mat-checkbox 
+              [(ngModel)]="showBoundingBox"
+              (change)="onSettingToggle('Bounding Box', $event.checked)">
+              Show Bounding Box
+            </mat-checkbox>
+          </div>
+  
+          <div class="checkbox-item">
+            <mat-checkbox 
+              [(ngModel)]="adaptivePointSize"
+              (change)="onSettingToggle('Adaptive Point Size', $event.checked)">
+              Adaptive Point Sizing
+            </mat-checkbox>
+          </div>
+        </div>
+  
+        <div class="reset-section">
+          <button 
+            mat-raised-button 
+            color="accent"
+            class="reset-btn"
+            (click)="resetToDefaults()">
+            <mat-icon>restore</mat-icon>
+            Reset to Defaults
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

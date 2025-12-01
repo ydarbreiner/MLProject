@@ -1,0 +1,138 @@
+// App Component Styles
+// Uses unified design tokens from styles/design-tokens.scss
+
+// App container
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--gradient-radial-top-left), var(--gradient-radial-top-right), var(--bg-app);
+}
+
+// App header (if used)
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-sticky);
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-xl);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(var(--blur-xl));
+  -webkit-backdrop-filter: blur(var(--blur-xl));
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.app-header__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: var(--font-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  text-decoration: none;
+  letter-spacing: var(--tracking-tight);
+
+  &:hover {
+    color: var(--accent-blue);
+  }
+}
+
+.app-header__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.app-header__nav-item {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--font-base);
+  font-weight: var(--font-medium);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-base);
+
+  &:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+  }
+
+  &.active {
+    color: var(--accent-blue);
+    background: var(--bg-elevated);
+  }
+}
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+// App main content
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+// App footer (if used)
+.app-footer {
+  padding: var(--space-2xl) var(--space-xl);
+  border-top: 1px solid var(--border-primary);
+  background: var(--bg-primary);
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--font-sm);
+}
+
+// Loading states
+.app-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.app-loading__spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--border-primary);
+  border-top-color: var(--accent-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.app-loading__text {
+  color: var(--text-secondary);
+  font-size: var(--font-base);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 var(--space-lg);
+  }
+
+  .app-header__nav {
+    gap: var(--space-sm);
+  }
+
+  .app-header__nav-item {
+    font-size: var(--font-sm);
+    padding: var(--space-xs) var(--space-sm);
+  }
+}

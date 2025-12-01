@@ -1,0 +1,66 @@
+# Dependencies
+/frontend/node_modules
+/frontend/.angular
+/backend/__pycache__
+**/__pycache__/
+*.pyc
+/backend/venv
+/backend/.venv
+
+# Build outputs
+/frontend/dist
+/frontend/out-tsc
+/frontend/build
+/backend/build
+
+# Environment files
+.env
+.env.local
+.env.production
+backend/.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+/logs
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Uploads and point cloud data
+uploads/
+pointclouds/
+backend/uploads/
+backend/pointclouds/
+
+# Temporary files
+*.tmp
+*.temp
+
+.venv/
+.venv/*
+
+node_modules/
+
+.claude
+

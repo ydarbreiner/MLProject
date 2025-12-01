@@ -1,0 +1,239 @@
+<div class="app-container">
+  <header class="global-header">
+    <div class="header-left">
+      <button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1 class="brand-title">TRAINED MODELS</h1>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="content-wrapper">
+      <div class="page-header">
+        <h1>Encoder Models</h1>
+        <p class="subtitle">View training statistics and configurations for your saved encoder models</p>
+      </div>
+
+      <div class="loading-container" *ngIf="loading">
+        <mat-spinner diameter="48"></mat-spinner>
+        <p>Loading models...</p>
+      </div>
+
+      <div class="models-grid" *ngIf="!loading">
+        <div *ngIf="models.length === 0" class="no-models">
+          <mat-icon>model_training</mat-icon>
+          <h3>No Trained Models</h3>
+          <p>Train an encoder model from the point cloud viewer to see it here</p>
+        </div>
+
+        <!-- MINIMIZED CARDS -->
+        <ng-container *ngFor="let model of models">
+          <div class="model-card-mini"
+               [class.selected]="selectedModel === model"
+               *ngIf="selectedModel !== model"
+               (click)="selectModel(model)">
+
+            <div class="mini-header">
+            <div class="icon-mini">
+              <mat-icon>psychology</mat-icon>
+            </div>
+            <div class="mini-info">
+              <h4>{{ model.runName }}</h4>
+              <span class="mini-date">{{ formatDate(model.createdAt) }}</span>
+            </div>
+          </div>
+
+          <div class="mini-stats" *ngIf="model.config">
+            <div class="mini-stat">
+              <span class="mini-stat-label">Steps</span>
+              <span class="mini-stat-value">{{ model.config.max_steps || 'N/A' }}</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat-label">Embedding</span>
+              <span class="mini-stat-value">{{ model.config.embedding_dim || 'N/A' }}</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat-label">Batch</span>
+              <span class="mini-stat-value">{{ model.config.batch_size || 'N/A' }}</span>
+            </div>
+          </div>
+
+            <button class="expand-btn">
+              <mat-icon>expand_more</mat-icon>
+              View Details
+            </button>
+          </div>
+        </ng-container>
+
+        <!-- EXPANDED CARD -->
+        <div *ngIf="selectedModel" class="model-card-expanded">
+          <div class="expanded-header">
+            <div class="expanded-title">
+              <div class="icon-wrapper">
+                <mat-icon>psychology</mat-icon>
+              </div>
+              <div>
+                <h2>{{ selectedModel.runName }}</h2>
+                <p class="expanded-date">Created {{ formatDate(selectedModel.createdAt) }}</p>
+              </div>
+            </div>
+            <button class="collapse-btn" (click)="selectModel(selectedModel)">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+
+          <!-- TRAINING GRAPHS -->
+          <div class="training-graphs" *ngIf="selectedModel.trainingGraphs && hasGraphs(selectedModel)">
+            <h3 class="section-heading">
+              <mat-icon>insert_chart</mat-icon>
+              Training Progress
+            </h3>
+            <div class="graphs-grid">
+              <div class="graph-item" *ngIf="selectedModel.trainingGraphs.loss">
+                <h4>Training Loss</h4>
+                <img [src]="getGraphUrl(selectedModel.trainingGraphs.loss)" alt="Training Loss">
+              </div>
+              <div class="graph-item" *ngIf="selectedModel.trainingGraphs.lr">
+                <h4>Learning Rate</h4>
+                <img [src]="getGraphUrl(selectedModel.trainingGraphs.lr)" alt="Learning Rate">
+              </div>
+              <div class="graph-item" *ngIf="selectedModel.trainingGraphs.delta">
+                <h4>Delta</h4>
+                <img [src]="getGraphUrl(selectedModel.trainingGraphs.delta)" alt="Delta">
+              </div>
+              <div class="graph-item" *ngIf="selectedModel.trainingGraphs.best">
+                <h4>Best Performance</h4>
+                <img [src]="getGraphUrl(selectedModel.trainingGraphs.best)" alt="Best Performance">
+              </div>
+            </div>
+          </div>
+
+          <!-- KEY METRICS -->
+          <div class="key-metrics" *ngIf="selectedModel.config">
+            <h3 class="section-heading">
+              <mat-icon>analytics</mat-icon>
+              Key Metrics
+            </h3>
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <span class="metric-label">Training Steps</span>
+                <span class="metric-value highlight">{{ selectedModel.config.max_steps || 'N/A' }}</span>
+                <span class="metric-detail">{{ selectedModel.config.checkpoint_every || 'N/A' }} steps per checkpoint</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Model Architecture</span>
+                <span class="metric-value">{{ selectedModel.config.embedding_dim || 'N/A' }}D → {{ selectedModel.config.projection_dim || 'N/A' }}D</span>
+                <span class="metric-detail">Embedding → Projection</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Training Config</span>
+                <span class="metric-value">{{ selectedModel.config.batch_size || 'N/A' }} × {{ selectedModel.config.patches_per_file || 'N/A' }}</span>
+                <span class="metric-detail">Batch size × Patches/file</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Learning Rate</span>
+                <span class="metric-value">{{ selectedModel.config.learning_rate || 'N/A' }}</span>
+                <span class="metric-detail">Weight decay: {{ selectedModel.config.weight_decay || 'N/A' }}</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Patch Size</span>
+                <span class="metric-value">{{ selectedModel.config.patch_size || 'N/A' }}</span>
+                <span class="metric-detail">Radius: {{ selectedModel.config.patch_radius || 'N/A' }}</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Temperature</span>
+                <span class="metric-value">{{ selectedModel.config.temperature || 'N/A' }}</span>
+                <span class="metric-detail">Contrastive learning</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- DETAILED CONFIG -->
+          <div class="detailed-config" *ngIf="selectedModel.config">
+            <h3 class="section-heading">
+              <mat-icon>tune</mat-icon>
+              Full Configuration
+            </h3>
+
+            <div class="config-section">
+              <h4>Data Augmentation</h4>
+              <div class="config-items">
+                <div class="config-item-inline">
+                  <span class="label">Jitter Std:</span>
+                  <span class="value">{{ selectedModel.config.jitter_std || 'N/A' }}</span>
+                </div>
+                <div class="config-item-inline">
+                  <span class="label">Jitter Clip:</span>
+                  <span class="value">{{ selectedModel.config.jitter_clip || 'N/A' }}</span>
+                </div>
+                <div class="config-item-inline">
+                  <span class="label">Scale Jitter:</span>
+                  <span class="value">{{ selectedModel.config.scale_jitter || 'N/A' }}</span>
+                </div>
+                <div class="config-item-inline">
+                  <span class="label">Dropout:</span>
+                  <span class="value">{{ selectedModel.config.dropout_ratio || 'N/A' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="config-section">
+              <h4>Training Settings</h4>
+              <div class="config-items">
+                <div class="config-item-inline">
+                  <span class="label">Use Intensity:</span>
+                  <span class="value" [class.boolean-true]="selectedModel.config.use_intensity" [class.boolean-false]="!selectedModel.config.use_intensity">
+                    {{ selectedModel.config.use_intensity ? 'Yes' : 'No' }}
+                  </span>
+                </div>
+                <div class="config-item-inline">
+                  <span class="label">Force CPU:</span>
+                  <span class="value" [class.boolean-true]="selectedModel.config.force_cpu" [class.boolean-false]="!selectedModel.config.force_cpu">
+                    {{ selectedModel.config.force_cpu ? 'Yes' : 'No' }}
+                  </span>
+                </div>
+                <div class="config-item-inline">
+                  <span class="label">Num Workers:</span>
+                  <span class="value">{{ selectedModel.config.num_workers || 'N/A' }}</span>
+                </div>
+                <div class="config-item-inline">
+                  <span class="label">Chunk Size:</span>
+                  <span class="value">{{ selectedModel.config.chunk_size_points || 'N/A' }}</span>
+                </div>
+                <div class="config-item-inline">
+                  <span class="label">Max Files/Epoch:</span>
+                  <span class="value">{{ selectedModel.config.max_files_per_epoch || 'N/A' }}</span>
+                </div>
+                <div class="config-item-inline">
+                  <span class="label">Log Every:</span>
+                  <span class="value">{{ selectedModel.config.log_every || 'N/A' }} steps</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="config-section">
+              <h4>File Paths</h4>
+              <div class="path-items">
+                <div class="path-item-compact">
+                  <span class="path-label">
+                    <mat-icon>save</mat-icon>
+                    Checkpoint
+                  </span>
+                  <code>{{ selectedModel.checkpointPath }}</code>
+                </div>
+                <div class="path-item-compact" *ngIf="selectedModel.configPath">
+                  <span class="path-label">
+                    <mat-icon>description</mat-icon>
+                    Configuration
+                  </span>
+                  <code>{{ selectedModel.configPath }}</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,59 @@
+<div class="point-cloud-controls-panel">
+  <div class="panel-header" (click)="toggleExpanded()">
+    <div class="panel-title">
+      <mat-icon class="panel-icon">layers</mat-icon>
+      <span>Point Cloud Controls</span>
+    </div>
+    <button mat-icon-button class="collapse-btn">
+      <mat-icon>{{ isExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+    </button>
+  </div>
+
+  <div class="panel-content" [class.expanded]="isExpanded">
+    <div class="content-sections">
+      <div class="control-section">
+        <div class="section-header">
+          <mat-icon>visibility</mat-icon>
+          <span>Visibility</span>
+        </div>
+
+        <div class="point-cloud-list">
+          <div *ngFor="let pc of pointClouds" class="point-cloud-item">
+            <mat-checkbox
+              [checked]="pc.visible"
+              (change)="onVisibilityChange(pc)">
+              {{ pc.name }}
+            </mat-checkbox>
+
+            <div class="density-control">
+              <label>Density: {{ pc.density }}%</label>
+              <mat-slider min="0" max="100" step="10">
+                <input matSliderThumb
+                       [value]="pc.density"
+                       (valueChange)="onDensityChange(pc)">
+              </mat-slider>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-section">
+        <div class="section-header">
+          <mat-icon>tune</mat-icon>
+          <span>Rendering</span>
+        </div>
+
+        <div class="control-grid">
+          <div class="control-item">
+            <label class="control-label">Density Mode</label>
+            <mat-select [value]="selectedDensityMode" (selectionChange)="onDensityModeChange()">
+              <mat-option *ngFor="let mode of densityModes" [value]="mode.value">
+                {{ mode.label }}
+              </mat-option>
+            </mat-select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

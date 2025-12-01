@@ -1,0 +1,2 @@
+# Placeholder for LAZ performance WebAssembly module
+# In a real application, this would be the compiled WASM binary for LAZ compression/decompression

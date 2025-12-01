@@ -1,0 +1,645 @@
+<div class="app-container">
+  <header class="global-header">
+    <div class="header-left">
+      <h1 class="brand-title">POINT CLOUD STUDIO</h1>
+    </div>
+
+    <div class="header-right">
+      <button class="btn-secondary" type="button" (click)="navigateToProjects()">
+        Projects
+      </button>
+      <button class="btn-secondary" type="button" (click)="navigateToTrainedModels()">
+        Trained Models
+      </button>
+      <button class="btn-primary" type="button" (click)="openUploadModal()">
+        Upload
+      </button>
+    </div>
+  </header>
+
+  <div class="main-layout">
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-header">
+            <span>Projects</span>
+            <button class="new-project-btn" type="button" (click)="navigateToProjects()" title="New Project">
+              +
+            </button>
+          </div>
+
+          <div class="nav-group nav-group--system">
+            <button class="nav-item nav-item--all" [class.active]="selectedProject === 'all'" (click)="filterByProject('all')">
+              <span class="nav-label">All Projects</span>
+              <span class="nav-count">{{ totalFiles }}</span>
+            </button>
+            <button
+              class="nav-item nav-item--unassigned"
+              [class.active]="selectedProject === 'unassigned'"
+              (click)="filterByProject('unassigned')"
+            >
+              <span class="nav-label">Unassigned</span>
+              <span class="nav-count">{{ unassignedCount }}</span>
+            </button>
+          </div>
+
+          <div class="nav-divider"></div>
+
+          <div class="nav-group nav-group--projects">
+            <button
+              class="nav-item nav-item--project"
+              *ngFor="let project of projectSummaries"
+              [class.active]="selectedProject === project.id"
+              (click)="filterByProject(project.id)"
+            >
+              <span class="nav-dot"></span>
+              <span class="nav-label">{{ project.name }}</span>
+              <span class="nav-count">{{ project.pointCloudCount }}</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="stats-cards">
+          <div class="stat-card">
+            <div class="stat-card__indicator stat-card__indicator--datasets"></div>
+            <div class="stat-card__content">
+              <div class="stat-card__value">{{ totalFiles }}</div>
+              <div class="stat-card__label">Datasets</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__indicator stat-card__indicator--storage"></div>
+            <div class="stat-card__content">
+              <div class="stat-card__value">{{ totalStorage }}</div>
+              <div class="stat-card__label">Storage</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="keyboard-hints">
+          <div class="hint-title">Shortcuts</div>
+          <div class="hint-row">
+            <div class="hint-item">
+              <kbd>/</kbd>
+              <span>Search</span>
+            </div>
+            <div class="hint-item">
+              <kbd>↵</kbd>
+              <span>Open</span>
+            </div>
+          </div>
+          <div class="hint-row">
+            <div class="hint-item">
+              <kbd>↑</kbd><kbd>↓</kbd>
+              <span>Browse</span>
+            </div>
+            <div class="hint-item">
+              <kbd>Esc</kbd>
+              <span>Reset</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main
+      class="content"
+      [class.view-map]="viewMode === 'map'"
+      [class.view-list]="viewMode === 'list'"
+      [class.view-split]="viewMode === 'split'"
+    >
+      <div class="map-container" [class.hidden]="viewMode === 'list'">
+        <div class="map-layer-toggle" role="group" aria-label="Map overlays">
+          <button
+            type="button"
+            class="map-layer-toggle__button"
+            [class.is-active]="mapLayerVisibility.geometry"
+            (click)="toggleMapLayer('geometry')"
+            [attr.aria-pressed]="mapLayerVisibility.geometry"
+          >
+            <span class="map-layer-toggle__dot map-layer-toggle__dot--geometry"></span>
+            Flight paths
+          </button>
+          <button
+            type="button"
+            class="map-layer-toggle__button"
+            [class.is-active]="mapLayerVisibility.poles"
+            (click)="toggleMapLayer('poles')"
+            [attr.aria-pressed]="mapLayerVisibility.poles"
+          >
+            <span class="map-layer-toggle__dot map-layer-toggle__dot--poles"></span>
+            Poles
+          </button>
+        </div>
+        <div #mapElement class="map"></div>
+      </div>
+
+      <div class="dataset-toolbar">
+        <div class="dataset-toolbar__left">
+          <div class="search-bar">
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Search datasets or projects…"
+              [(ngModel)]="searchQuery"
+              (input)="onSearchChange()"
+            />
+            <button
+              class="search-clear"
+              *ngIf="searchQuery"
+              (click)="clearSearch()"
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          </div>
+
+          <div class="active-filters" *ngIf="searchQuery || selectedProject !== 'all'">
+            <span class="filter-label">Filters</span>
+            <span class="filter-tag" *ngIf="searchQuery">
+              "{{ searchQuery }}"
+              <button
+                class="filter-clear"
+                (click)="clearSearch()"
+                aria-label="Remove search filter"
+              >
+                ×
+              </button>
+            </span>
+            <span class="filter-tag" *ngIf="selectedProject !== 'all'">
+              {{ getProjectName(selectedProject) }}
+              <button
+                class="filter-clear"
+                (click)="filterByProject('all')"
+                aria-label="Reset project filter"
+              >
+                ×
+              </button>
+            </span>
+          </div>
+        </div>
+
+        <div class="dataset-toolbar__right">
+          <div class="toolbar-divider" aria-hidden="true"></div>
+          <div class="sort-menu">
+            <label class="sort-label" id="sortLabel">Sort by</label>
+            <select
+              class="sort-select"
+              [ngModel]="sortField"
+              (ngModelChange)="onSortFieldChange($event)"
+              aria-labelledby="sortLabel"
+            >
+              <option value="name">Name</option>
+              <option value="project">Project</option>
+              <option value="area">Coverage</option>
+              <option value="points">Points</option>
+            </select>
+            <button
+              type="button"
+              class="sort-direction"
+              (click)="toggleSortDirection()"
+              [attr.aria-label]="'Toggle sort direction (currently ' + (sortDirection === 'asc' ? 'ascending' : 'descending') + ')'"
+            >
+              <span
+                class="sort-direction__icon"
+                [class.asc]="sortDirection === 'asc'"
+                [class.desc]="sortDirection === 'desc'"
+              ></span>
+            </button>
+          </div>
+
+          <div class="toolbar-divider" aria-hidden="true"></div>
+          <div class="view-toggle" role="group" aria-label="Area units">
+            <button class="toggle-btn" type="button" [class.active]="areaDisplayUnit === 'metric'" (click)="areaDisplayUnit = 'metric'" title="Metric units (km², ha)">
+              Metric
+            </button>
+            <button class="toggle-btn" type="button" [class.active]="areaDisplayUnit === 'imperial'" (click)="areaDisplayUnit = 'imperial'" title="Imperial units (ft², ac)">
+              Imperial
+            </button>
+          </div>
+
+          <div class="toolbar-divider" aria-hidden="true"></div>
+          <div class="view-toggle" role="group" aria-label="View mode">
+            <button class="toggle-btn" type="button" [class.active]="viewMode === 'split'" (click)="setViewMode('split')">
+              Split
+            </button>
+            <button class="toggle-btn" type="button" [class.active]="viewMode === 'map'" (click)="setViewMode('map')">
+              Map
+            </button>
+            <button class="toggle-btn" type="button" [class.active]="viewMode === 'list'" (click)="setViewMode('list')">
+              List
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <div class="table-header">
+          <div class="result-count">
+            <ng-container *ngIf="selectedProject === 'all'">
+              <span class="count-number">{{ filteredProjects.length }}</span>
+              <span class="count-label">{{ filteredProjects.length === 1 ? 'project' : 'projects' }}</span>
+              <span class="count-total" *ngIf="filteredProjects.length !== projectSummaries.length">
+                of {{ projectSummaries.length }} total
+              </span>
+            </ng-container>
+            <ng-container *ngIf="selectedProject !== 'all'">
+              <span class="count-number">{{ filteredFiles.length }}</span>
+              <span class="count-label">{{ filteredFiles.length === 1 ? 'file' : 'files' }}</span>
+              <span class="count-total" *ngIf="filteredFiles.length !== allFiles.length">
+                of {{ allFiles.length }} total
+              </span>
+            </ng-container>
+          </div>
+        </div>
+
+        <div class="table-body" [class.has-poles]="poleMatches.length > 0">
+          <div class="dataset-column">
+            <div class="cards-grid">
+              <div
+                *ngFor="let file of filteredFiles"
+                class="point-cloud-card"
+                [class.selected]="selectedFile?.id === file.id"
+                (click)="selectFile(file)"
+              >
+                <div class="card-header">
+                  <div class="card-header-content">
+                    <span class="format-badge">{{ file.name.slice(-3).toUpperCase() }}</span>
+                    <div class="card-title-group">
+                      <span class="card-name">{{ file.name }}</span>
+                      <span class="card-subtitle">{{ getProjectDisplay(file) }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card-body">
+                  <div class="card-stat">
+                    <span class="card-stat-label">Points</span>
+                    <span class="card-stat-value">{{ formatPoints(file.pointCount) }}</span>
+                  </div>
+                  <div class="card-stat">
+                    <span class="card-stat-label">Size</span>
+                    <span class="card-stat-value">{{ formatFileSize(file.fileSize || file.size || 0) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-footer" *ngIf="filteredFiles.length === 0">
+              <div class="empty-state">
+                <div class="empty-content">
+                  <div class="empty-title">{{ searchQuery ? 'No matches found' : 'No files yet' }}</div>
+                  <div class="empty-description">
+                    {{
+                      searchQuery
+                        ? 'Try a different search term or clear filters'
+                        : 'Upload your first point cloud to get started'
+                    }}
+                  </div>
+                  <button class="btn-primary" (click)="openUploadModal()" *ngIf="!searchQuery">
+                    Upload Files
+                  </button>
+                  <button class="btn-secondary" (click)="clearSearch()" *ngIf="searchQuery">
+                    Clear Search
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pole-panel" *ngIf="poleMatches.length > 0">
+            <div class="pole-panel__header">
+              <div class="pole-panel__title-group">
+                <span class="pole-panel__eyebrow">Project poles</span>
+                <h2 class="pole-panel__title">
+                  {{ filteredPoleMatches.length }} {{ filteredPoleMatches.length === 1 ? 'Pole' : 'Poles' }}
+                </h2>
+              </div>
+              <div class="pole-panel__search">
+                <input
+                  type="text"
+                  placeholder="Filter poles…"
+                  [(ngModel)]="poleSearchQuery"
+                />
+              </div>
+            </div>
+            <div class="pole-panel__list" role="list">
+              <div
+                class="pole-row"
+                [class.is-active]="isPoleActive(match)"
+                role="listitem"
+                *ngFor="let match of filteredPoleMatches; trackBy: trackPoleMatch"
+                (mouseenter)="onPoleRowHover(match)"
+                (mouseleave)="onPoleRowLeave()"
+                (click)="locatePole(match)"
+                (keyup.enter)="locatePole(match)"
+                (keyup.space)="locatePole(match)"
+                tabindex="0"
+              >
+                <div class="pole-row__body">
+                  <div class="pole-row__name">{{ match.pole.name || ('Pole ' + (match.index + 1)) }}</div>
+                </div>
+                <div class="pole-row__actions">
+                  <button
+                    type="button"
+                    class="pole-row__action pole-row__action--arrow"
+                    (click)="openPoleInViewer(match, $event)"
+                    [disabled]="match.status !== 'ready'"
+                    aria-label="Open in viewer"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="pole-panel__empty" *ngIf="filteredPoleMatches.length === 0">
+              No poles match your filter.
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="detail-panel" [class.visible]="selectedFile">
+      <div class="detail-shell" *ngIf="selectedFile as file">
+        <div class="panel-header">
+          <div class="panel-heading">
+            <span class="panel-format">{{ file.name.slice(-3).toUpperCase() }}</span>
+            <div class="panel-title-group">
+              <h3 class="panel-title">{{ file.name }}</h3>
+              <div class="panel-meta">
+                <span>{{ getProjectDisplay(file) }}</span>
+                <ng-container *ngIf="getLocationName(file)">
+                  <span class="meta-separator">•</span>
+                  <span>{{ getLocationName(file) }}</span>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+          <div class="panel-actions">
+            <button class="icon-button" type="button" (click)="closeDetailPanel()" aria-label="Close details">
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <section class="panel-summary">
+            <div class="summary-grid">
+              <div class="summary-tile">
+                <span class="summary-label">Points</span>
+                <span class="summary-value">{{ formatPoints(file.pointCount) }}</span>
+              </div>
+              <div class="summary-tile">
+                <span class="summary-label">Coverage</span>
+                <span class="summary-value">{{ formatArea(file) }}</span>
+              </div>
+              <div class="summary-tile">
+                <span class="summary-label">Density</span>
+                <span class="summary-value">{{ formatDensity(file.pointDensityPerM2) }}</span>
+              </div>
+              <div class="summary-tile">
+                <span class="summary-label">Size</span>
+                <span class="summary-value">{{ formatFileSize(file.fileSize || file.size || 0) }}</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel-section">
+            <h4 class="section-title">Metadata</h4>
+            <dl class="detail-list">
+              <div class="detail-item">
+                <dt>Coordinate system</dt>
+                <dd class="mono">{{ getCoordinateSystemDisplay(file) }}</dd>
+              </div>
+              <div class="detail-item" *ngIf="file.bounds?.geographic as geoBounds">
+                <dt>Bounding box (lat/lng)</dt>
+                <dd class="mono">
+                  {{ geoBounds.southWest?.lat | number: '1.5-5' }}, {{ geoBounds.southWest?.lng | number: '1.5-5' }}<br />
+                  {{ geoBounds.northEast?.lat | number: '1.5-5' }}, {{ geoBounds.northEast?.lng | number: '1.5-5' }}
+                </dd>
+              </div>
+              <div class="detail-item" *ngIf="file.bounds?.min && file.bounds?.max">
+                <dt>Bounds (projected)</dt>
+                <dd class="mono">
+                  {{ formatCoord(file.bounds?.min?.x) }}, {{ formatCoord(file.bounds?.min?.y) }}<br />
+                  {{ formatCoord(file.bounds?.max?.x) }}, {{ formatCoord(file.bounds?.max?.y) }}
+                </dd>
+              </div>
+              <div class="detail-item">
+                <dt>Classification</dt>
+                <dd>{{ getClassificationSummary(file) }}</dd>
+              </div>
+              <div class="detail-item">
+                <dt>Quality</dt>
+                <dd>
+                  <span
+                    class="quality-badge"
+                    [class.excellent]="getQualityTier(file) === 'excellent'"
+                    [class.good]="getQualityTier(file) === 'good'"
+                    [class.fair]="getQualityTier(file) === 'fair'"
+                  >
+                    {{ calculateQualityScore(file) }}/100
+                  </span>
+                </dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="panel-section assignment-section">
+            <div class="panel-section__header">
+              <h4 class="section-title">Project assignment</h4>
+              <div class="assignment-pill">
+                <span class="assignment-pill__label">Current</span>
+                <span class="assignment-pill__value">{{ getProjectDisplay(file) }}</span>
+              </div>
+            </div>
+            <div class="assignment-controls">
+              <mat-form-field appearance="fill" class="assignment-select">
+                <mat-label>Assign to</mat-label>
+                <mat-select
+                  [(ngModel)]="assignmentDraftProjectId"
+                  (selectionChange)="onAssignmentSelectionChange($event.value)"
+                  panelClass="assignment-select__panel"
+                  [ngModelOptions]="{ standalone: true }"
+                >
+                  <mat-option [value]="null">Unassigned</mat-option>
+                  <mat-option *ngFor="let project of projectSummaries" [value]="project.id">
+                    {{ project.name }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <button
+                class="btn-primary"
+                type="button"
+                (click)="assignFileToProject(file)"
+                [disabled]="isAssigningProject"
+              >
+                {{ isAssigningProject ? 'Assigning…' : 'Apply' }}
+              </button>
+            </div>
+            <p *ngIf="assignmentError" class="assignment-error">{{ assignmentError }}</p>
+          </section>
+
+          <div class="panel-buttons">
+            <button class="btn-primary" (click)="openViewer(file)" *ngIf="file.status === 'completed'">
+              Open in Viewer
+            </button>
+            <button class="btn-secondary" (click)="downloadFile(file)" *ngIf="file.url">
+              Download
+            </button>
+            <button
+              class="btn-danger"
+              type="button"
+              (click)="deleteFile(file, $event)"
+              [disabled]="isDeleting(file)"
+            >
+              {{ isDeleting(file) ? 'Deleting…' : 'Delete' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="upload-page" *ngIf="showUploadModal">
+    <div class="upload-page__container">
+      <header class="upload-page__header">
+        <div class="upload-page__header-left">
+          <span class="upload-page__eyebrow">UPLOAD DATASETS</span>
+          <h1 class="upload-page__title">Add point clouds</h1>
+        </div>
+        <button class="btn-secondary" type="button" (click)="closeUploadModal()">
+          Close
+        </button>
+      </header>
+
+      <div class="upload-page__layout">
+        <div class="upload-page__main">
+          <section class="upload-form">
+            <div class="upload-form__header">
+              <h2 class="upload-form__title">Upload details</h2>
+              <p class="upload-form__description">Drop files or select from your computer to begin.</p>
+            </div>
+
+            <div class="upload-form__body">
+              <div class="form-group">
+                <label class="form-label">FILES</label>
+                <div
+                  class="form-dropzone"
+                  (drop)="onFileDrop($event)"
+                  (dragover)="onDragOver($event)"
+                >
+                  <div class="dropzone-content">
+                    <div class="dropzone-text">
+                      <strong>Drag and drop files</strong>
+                      <span>or</span>
+                      <label class="dropzone-link">
+                        <input
+                          type="file"
+                          multiple
+                          accept=".las,.laz"
+                          (change)="onFileSelect($event)"
+                        />
+                        Browse to upload
+                      </label>
+                    </div>
+                    <div class="dropzone-hint">Up to 5 GB per file. Supported formats: LAS, LAZ.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="uploadProjectSelect">ASSIGN TO PROJECT</label>
+                <select
+                  id="uploadProjectSelect"
+                  class="form-select"
+                  [(ngModel)]="uploadProjectId"
+                >
+                  <option [ngValue]="null">Unassigned</option>
+                  <option *ngFor="let project of projectSummaries" [ngValue]="project.id">
+                    {{ project.name }}
+                  </option>
+                </select>
+                <span class="form-helper">You can reassign uploads after they finish.</span>
+              </div>
+
+              <div class="form-group" *ngIf="uploadQueue.length > 0">
+                <label class="form-label">QUEUE ({{ uploadQueue.length }} {{ uploadQueue.length === 1 ? 'file' : 'files' }})</label>
+                <ul class="upload-queue">
+                  <li
+                    *ngFor="let item of uploadQueue; let i = index"
+                    class="upload-queue__item"
+                    [class.is-uploading]="item.status === 'uploading' || item.status === 'processing'"
+                    [class.is-complete]="item.status === 'completed'"
+                    [class.is-error]="item.status === 'failed'"
+                  >
+                    <div class="upload-queue__row">
+                      <div class="upload-queue__info">
+                        <span class="upload-queue__name">{{ item.file.name }}</span>
+                        <span class="upload-queue__size">{{ formatFileSize(item.file.size) }}</span>
+                      </div>
+                      <button
+                        type="button"
+                        class="upload-queue__remove"
+                        *ngIf="item.status === 'pending'"
+                        (click)="removeUploadFile(i)"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div class="upload-queue__status">
+                      <span class="upload-queue__status-label">{{ getUploadStatusLabel(item) }}</span>
+                    </div>
+                    <div class="upload-queue__progress" *ngIf="item.status !== 'pending'">
+                      <div class="upload-queue__progress-bar" [style.width.%]="item.progress"></div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="upload-form__footer">
+              <button
+                class="btn-primary"
+                type="button"
+                (click)="startUpload()"
+                [disabled]="!hasPendingUploads"
+              >
+                {{ uploadQueue.length > 1 ? 'START UPLOADS' : 'START UPLOAD' }}
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <div class="upload-page__sidebar">
+          <section class="upload-info">
+            <h2 class="upload-info__title">Upload guidelines</h2>
+            <p class="upload-info__description">File requirements and processing information.</p>
+
+            <dl class="upload-info__list">
+              <div class="upload-info__item">
+                <dt>Supported formats</dt>
+                <dd>LAS, LAZ</dd>
+              </div>
+              <div class="upload-info__item">
+                <dt>Max file size</dt>
+                <dd>5 GB per file</dd>
+              </div>
+              <div class="upload-info__item">
+                <dt>Background uploads</dt>
+                <dd>Keep working while transfers complete</dd>
+              </div>
+              <div class="upload-info__item">
+                <dt>Reliability</dt>
+                <dd>Chunked in 5 MB segments</dd>
+              </div>
+            </dl>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

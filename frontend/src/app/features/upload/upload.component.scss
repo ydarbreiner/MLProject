@@ -1,0 +1,430 @@
+// Upload Component - Unified Design System
+// Uses design tokens for consistency across the app
+
+.upload-shell {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: var(--gradient-radial-top-left), var(--gradient-radial-top-right), var(--bg-app);
+  overflow: auto;
+  color: var(--text-primary);
+}
+
+// ============================================================================
+// HEADER
+// ============================================================================
+
+.upload-global-header {
+  padding: var(--space-2xl);
+  border-bottom: 1px solid var(--border-primary);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-xl);
+  background: var(--bg-app);
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.upload-eyebrow {
+  font-size: var(--font-xs);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-widest);
+  color: var(--text-hint);
+  text-transform: uppercase;
+}
+
+.page-title {
+  font-size: var(--font-4xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  margin: 0;
+}
+
+.close-btn {
+  padding: 0.55rem 0.9rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-secondary);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: var(--font-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-family: inherit;
+
+  &:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-hover);
+  }
+}
+
+// ============================================================================
+// WORKSPACE LAYOUT
+// ============================================================================
+
+.upload-workspace {
+  max-width: 1920px;
+  margin: 0 auto;
+  padding: var(--space-2xl) var(--space-3xl);
+}
+
+.workspace-layout {
+  display: grid;
+  grid-template-columns: 1fr 440px;
+  gap: var(--space-2xl);
+}
+
+// ============================================================================
+// MAIN PANEL
+// ============================================================================
+
+.upload-main-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-3xl);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-xl);
+}
+
+.panel-header {
+  padding: var(--space-xl) var(--space-xl) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  border-bottom: none;
+
+  h2 {
+    font-size: var(--font-2xl);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    margin: 0 0 0.35rem;
+    letter-spacing: var(--tracking-tight);
+  }
+
+  p {
+    font-size: var(--font-base);
+    color: var(--text-tertiary);
+    margin: 0;
+  }
+}
+
+.panel-body {
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+// ============================================================================
+// FORM ELEMENTS
+// ============================================================================
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.form-label {
+  font-size: var(--font-xs);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.form-select {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--font-lg);
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23808080' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  transition: all var(--transition-base);
+
+  option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--border-active);
+    background: var(--bg-hover);
+  }
+}
+
+.form-helper {
+  font-size: var(--font-sm);
+  color: var(--text-tertiary);
+}
+
+// ============================================================================
+// DROPZONE
+// ============================================================================
+
+.form-dropzone {
+  border: 2px dashed var(--border-dashed);
+  border-radius: var(--radius-xl);
+  padding: var(--space-3xl);
+  transition: all var(--transition-base);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    border-color: var(--border-hover);
+  }
+
+  &.form-dropzone--over {
+    border-style: solid;
+    border-color: var(--border-active);
+    background: var(--bg-tertiary);
+  }
+
+  &.form-dropzone--uploading {
+    cursor: progress;
+    border-style: solid;
+    border-color: var(--border-secondary);
+  }
+}
+
+.dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  text-align: center;
+  width: 100%;
+}
+
+.dropzone-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--font-lg);
+  color: var(--text-secondary);
+
+  strong {
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    font-size: var(--font-lg);
+  }
+
+  span {
+    font-size: var(--font-base);
+    color: var(--text-tertiary);
+  }
+}
+
+.dropzone-link {
+  color: var(--accent-blue);
+  cursor: pointer;
+  font-weight: var(--font-semibold);
+  font-size: var(--font-lg);
+  transition: color var(--transition-base);
+
+  &:hover {
+    color: var(--accent-blue-hover);
+    text-decoration: underline;
+  }
+}
+
+.dropzone-hint {
+  font-size: var(--font-sm);
+  color: var(--text-tertiary);
+  width: 100%;
+}
+
+// ============================================================================
+// PROGRESS & SUCCESS STATES
+// ============================================================================
+
+.progress-state {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-base);
+}
+
+.progress-filename {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.progress-percentage {
+  font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+  color: var(--text-secondary);
+}
+
+.progress-hint {
+  margin: 0;
+  font-size: var(--font-sm);
+  color: var(--text-tertiary);
+  font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+}
+
+.success-state {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.success-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  color: var(--accent-green);
+}
+
+.success-message {
+  font-size: var(--font-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+// ============================================================================
+// UPLOAD FOOTER (ERROR)
+// ============================================================================
+
+.upload-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0.75rem var(--space-lg);
+  border-radius: var(--radius-md);
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: var(--accent-red);
+  font-size: var(--font-base);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// ============================================================================
+// SIDEBAR INFO PANEL
+// ============================================================================
+
+.upload-sidebar {
+  position: sticky;
+  top: var(--space-2xl);
+  align-self: flex-start;
+}
+
+.info-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-3xl);
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  box-shadow: var(--shadow-xl);
+}
+
+.info-title {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: var(--tracking-tight);
+}
+
+.info-description {
+  font-size: var(--font-base);
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  margin: 0;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--border-primary);
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  dt {
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    letter-spacing: var(--tracking-widest);
+    text-transform: uppercase;
+    color: var(--text-hint);
+  }
+
+  dd {
+    margin: 0;
+    font-size: var(--font-lg);
+    color: var(--text-primary);
+    font-weight: var(--font-medium);
+  }
+}
+
+// ============================================================================
+// RESPONSIVE
+// ============================================================================
+
+@media (max-width: 1024px) {
+  .workspace-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-sidebar {
+    position: relative;
+    top: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .upload-global-header {
+    padding: var(--space-xl);
+  }
+
+  .upload-workspace {
+    padding: var(--space-xl);
+  }
+
+  .page-title {
+    font-size: var(--font-3xl);
+  }
+}

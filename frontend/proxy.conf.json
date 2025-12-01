@@ -1,0 +1,14 @@
+{
+  "/api/*": {
+    "target": "http://backend:8000",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/pointclouds/*": {
+    "target": "http://backend:8000",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

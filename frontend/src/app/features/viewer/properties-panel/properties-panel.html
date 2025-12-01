@@ -1,0 +1,76 @@
+<div class="properties-panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <mat-icon class="panel-icon">info</mat-icon>
+        <span>Properties</span>
+      </div>
+      <button mat-icon-button class="collapse-btn" (click)="toggleExpanded()">
+        <mat-icon>{{ expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </button>
+    </div>
+    
+    <div class="panel-content" [class.expanded]="expanded">
+      <div *ngIf="pointCloud; else noData" class="content-sections">
+        
+        <div class="property-section">
+          <div class="section-header">
+            <mat-icon>description</mat-icon>
+            <span>Basic Information</span>
+          </div>
+          <div class="property-grid">
+            <div class="property-item">
+              <span class="property-label">Name</span>
+              <span class="property-value">{{ pointCloud.name }}</span>
+            </div>
+            <div class="property-item">
+              <span class="property-label">Status</span>
+              <span class="property-value status" [class]="pointCloud.status">
+                <mat-icon class="status-icon">
+                  {{ getStatusIcon(pointCloud.status) }}
+                </mat-icon>
+                {{ pointCloud.status | titlecase }}
+              </span>
+            </div>
+            <div class="property-item">
+              <span class="property-label">Points</span>
+              <span class="property-value">{{ (pointCloud.pointCount ?? 0) | number }}</span>
+            </div>
+            <div class="property-item">
+              <span class="property-label">File Size</span>
+              <span class="property-value">{{ (pointCloud.fileSize ?? 0) | fileSize }}</span>
+            </div>
+            <div class="property-item">
+              <span class="property-label">Created</span>
+              <span class="property-value">{{ pointCloud.date | date:'short' }}</span>
+            </div>
+          </div>
+        </div>
+  
+        <div class="property-section" *ngIf="pointCloud?.classification as classification">
+          <div class="section-header">
+            <mat-icon>analytics</mat-icon>
+            <span>Classification Statistics</span>
+          </div>
+          <div class="classification-stats">
+            <div class="stat-item" *ngFor="let class of classification | keyvalue">
+              <div class="stat-header">
+                <span class="stat-name">{{ class.key }}</span>
+                <span class="stat-count">{{ class.value | number }}</span>
+              </div>
+              <div class="stat-bar">
+                <div class="stat-fill" [style.width.%]="getPercentage(class.value)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+  
+      </div>
+      
+      <ng-template #noData>
+        <div class="no-data">
+          <mat-icon>cloud_off</mat-icon>
+          <p>No point cloud selected</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>

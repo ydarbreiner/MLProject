@@ -1,0 +1,114 @@
+<div class="upload-shell" [class.upload-shell--complete]="uploadComplete">
+  <header class="upload-global-header">
+    <div class="header-left">
+      <span class="upload-eyebrow">UPLOAD DATASETS</span>
+      <h1 class="page-title">Add point clouds</h1>
+    </div>
+    <button class="close-btn" type="button">Close</button>
+  </header>
+
+  <div class="upload-workspace">
+    <div class="workspace-layout">
+      <section class="upload-main-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Upload details</h2>
+            <p>Drop files or select from your computer to begin.</p>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label class="form-label">FILES</label>
+
+            <div
+              class="form-dropzone"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onDrop($event)"
+              [class.form-dropzone--over]="isDragOver"
+              [class.form-dropzone--uploading]="isUploading"
+            >
+              <div class="dropzone-content" *ngIf="!isUploading && !uploadComplete">
+                <div class="dropzone-text">
+                  <strong>Drag and drop files</strong>
+                  <span>or</span>
+                  <label class="dropzone-link">
+                    <input
+                      type="file"
+                      #fileInput
+                      accept=".las,.laz"
+                      (change)="onFileSelected($event)"
+                      hidden
+                    />
+                    Browse to upload
+                  </label>
+                </div>
+                <div class="dropzone-hint">Up to 5 GB per file. Supported formats: LAS, LAZ.</div>
+              </div>
+
+              <div class="progress-state" *ngIf="isUploading">
+                <div class="progress-info">
+                  <span class="progress-filename">{{ selectedFile?.name }}</span>
+                  <span class="progress-percentage">{{ uploadProgress }}%</span>
+                </div>
+                <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+                <p class="progress-hint">Processing chunks...</p>
+              </div>
+
+              <div class="success-state" *ngIf="uploadComplete">
+                <mat-icon class="success-icon">check_circle</mat-icon>
+                <span class="success-message">Upload complete</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="uploadProjectSelect">ASSIGN TO PROJECT</label>
+            <select
+              id="uploadProjectSelect"
+              class="form-select"
+              [(ngModel)]="selectedProjectId"
+            >
+              <option [ngValue]="null">Unassigned</option>
+              <option *ngFor="let project of projects" [ngValue]="project.id">
+                {{ project.name }}
+              </option>
+            </select>
+            <span class="form-helper">You can reassign uploads after they finish.</span>
+          </div>
+
+          <div class="upload-footer" *ngIf="errorMessage">
+            <mat-icon fontIcon="error_outline"></mat-icon>
+            <span>{{ errorMessage }}</span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="upload-sidebar">
+        <section class="info-panel">
+          <h2 class="info-title">Upload guidelines</h2>
+          <p class="info-description">File requirements and processing information.</p>
+
+          <dl class="info-list">
+            <div class="info-item">
+              <dt>Supported formats</dt>
+              <dd>LAS, LAZ</dd>
+            </div>
+            <div class="info-item">
+              <dt>Max file size</dt>
+              <dd>5 GB per file</dd>
+            </div>
+            <div class="info-item">
+              <dt>Background uploads</dt>
+              <dd>Keep working while transfers complete</dd>
+            </div>
+            <div class="info-item">
+              <dt>Reliability</dt>
+              <dd>Chunked in 5 MB segments</dd>
+            </div>
+          </dl>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>

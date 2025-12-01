@@ -1,0 +1,132 @@
+.shortcuts-dialog {
+  max-width: 800px;
+  color: var(--color-text-primary, #FFFFFF);
+
+  .dialog-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-primary, #FFFFFF);
+    margin: 0;
+    padding: 24px 24px 16px;
+
+    .title-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+      color: var(--color-accent, #3B82F6);
+    }
+  }
+
+  .dialog-content {
+    padding: 0 24px 24px;
+    max-height: 600px;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+    }
+  }
+
+  .shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 32px;
+  }
+
+  .shortcut-group {
+    .group-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-secondary, #9CA3AF);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 0 12px 0;
+    }
+
+    .shortcut-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .shortcut-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 0;
+
+      .shortcut-keys {
+        min-width: 140px;
+        flex-shrink: 0;
+
+        .kbd {
+          display: inline-block;
+          padding: 4px 8px;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 4px;
+          font-family: 'SF Mono', Monaco, Consolas, monospace;
+          font-size: 12px;
+          font-weight: 500;
+          color: var(--color-text-primary, #FFFFFF);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+      }
+
+      .shortcut-description {
+        flex: 1;
+        font-size: 14px;
+        color: var(--color-text-secondary, #D1D5DB);
+        line-height: 1.4;
+      }
+    }
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    .close-button {
+      padding: 8px 24px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-primary, #FFFFFF);
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      transition: background 0.15s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+    }
+  }
+}
+
+// Override Material Dialog styles
+::ng-deep {
+  .mat-mdc-dialog-container .mdc-dialog__surface {
+    background: #1A1A1A;
+    border: 1px solid #2A2A2A;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+}

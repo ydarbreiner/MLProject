@@ -1,0 +1,84 @@
+:host {
+  display: block;
+}
+
+.advanced-settings-panel {
+  background: var(--bg-panel);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.settings-tabs {
+  ::ng-deep {
+    .mat-mdc-tab-group {
+      --mdc-tab-indicator-active-indicator-color: var(--accent-blue);
+    }
+
+    .mat-mdc-tab {
+      --mdc-secondary-navigation-tab-label-text-color: var(--text-secondary);
+      --mdc-secondary-navigation-tab-active-label-text-color: var(--accent-blue);
+    }
+  }
+}
+
+.settings-section {
+  padding: var(--spacing-lg);
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.settings-grid {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.setting-label {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.setting-control {
+  min-width: 120px;
+}
+
+.reset-button {
+  margin-top: var(--spacing-lg);
+  width: 100%;
+}
